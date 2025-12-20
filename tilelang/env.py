@@ -317,8 +317,15 @@ def prepend_pythonpath(path):
 if env.TVM_IMPORT_PYTHON_PATH is not None:
     prepend_pythonpath(env.TVM_IMPORT_PYTHON_PATH)
 else:
-    tvm_path = os.path.join(THIRD_PARTY_ROOT, "tvm", "python")
-    assert os.path.exists(tvm_path), tvm_path
+    # Prefer tvm-slim over full TVM when available
+    tvm_slim_path = os.path.join(THIRD_PARTY_ROOT, "tvm-slim", "python")
+    tvm_full_path = os.path.join(THIRD_PARTY_ROOT, "tvm", "python")
+    if os.path.exists(tvm_slim_path):
+        tvm_path = tvm_slim_path
+    elif os.path.exists(tvm_full_path):
+        tvm_path = tvm_full_path
+    else:
+        raise RuntimeError(f"TVM not found. Searched: {tvm_slim_path}, {tvm_full_path}")
     if tvm_path not in sys.path:
         prepend_pythonpath(tvm_path)
         env.TVM_IMPORT_PYTHON_PATH = tvm_path
