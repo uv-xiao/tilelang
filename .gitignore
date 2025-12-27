@@ -20,7 +20,7 @@
 debug/
 build/
 *dist/
-dist*/
+# dist*/
 wheelhouse/
 __pycache__
 nnfusion.tar.gz

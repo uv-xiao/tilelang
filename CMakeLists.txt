@@ -137,6 +137,7 @@ file(GLOB TILE_LANG_SRCS
   src/layout/*.cc
   src/transform/*.cc
   src/transform/common/*.cc
+  src/transform/distributed/*.cc
   src/op/*.cc
   src/target/utils.cc
   src/target/codegen_c_host.cc
@@ -232,6 +233,52 @@ set(USE_PYPI_Z3 ON CACHE BOOL   "Use Z3 provided by PyPI z3-solver package")
 if(USE_Z3 AND USE_PYPI_Z3)
   list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/pypi-z3")
   find_package(Z3 REQUIRED)
+endif()
+
+# NVSHMEM support for distributed communication
+option(USE_NVSHMEM "Enable NVSHMEM distributed communication support" OFF)
+option(USE_PYPI_NVSHMEM "Use NVSHMEM from PyPI nvidia-nvshmem package" ON)
+
+if(USE_NVSHMEM)
+  if(USE_PYPI_NVSHMEM)
+    # Use the PyPI-installed nvidia-nvshmem package
+    list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/pypi-nvshmem")
+  else()
+    # Use system NVSHMEM installation
+    list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
+  endif()
+
+  find_package(NVSHMEM)
+
+  if(NVSHMEM_FOUND)
+    message(STATUS "NVSHMEM enabled with includes: ${NVSHMEM_INCLUDE_DIRS}")
+    list(APPEND TILE_LANG_INCLUDES ${NVSHMEM_INCLUDE_DIRS})
+    add_compile_definitions(TL_USE_NVSHMEM=1)
+
+    # Set variables that TVM's FindNVSHMEM expects
+    set(NVSHMEM_INCLUDE_DIR ${NVSHMEM_INCLUDE_DIRS} CACHE PATH "NVSHMEM include directory")
+    get_filename_component(NVSHMEM_LIB_DIR "${NVSHMEM_HOST_LIBRARY}" DIRECTORY)
+    set(NVSHMEM_LIB_DIR ${NVSHMEM_LIB_DIR} CACHE PATH "NVSHMEM library directory")
+
+    # Add NVSHMEM library directory to RPATH for runtime linking
+    if(NVSHMEM_LIBRARY_DIR)
+      if(APPLE)
+        list(APPEND TILELANG_INSTALL_RPATH "@loader_path/../../nvidia/nvshmem/lib")
+      else()
+        string(APPEND TILELANG_INSTALL_RPATH ":\$ORIGIN/../../nvidia/nvshmem/lib")
+      endif()
+    endif()
+
+    # TileLang handles NVSHMEM via its own codegen, not TVM's runtime.
+    # Disable TVM's NVSHMEM support to avoid duplicate configuration.
+    set(TILELANG_USE_NVSHMEM ON)
+    set(USE_NVSHMEM OFF CACHE STRING "Disable TVM NVSHMEM (handled by TileLang)" FORCE)
+  else()
+    message(STATUS "NVSHMEM not found. Distributed features will use runtime dlopen.")
+    message(STATUS "  To enable, install: pip install nvidia-nvshmem-cu12")
+    set(TILELANG_USE_NVSHMEM OFF)
+    set(USE_NVSHMEM OFF CACHE STRING "NVSHMEM not found" FORCE)
+  endif()
 endif()
 
 # Include tvm after configs have been populated
