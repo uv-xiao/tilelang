@@ -300,6 +300,10 @@ std::string CodeGenTileLangCUDA::Finish() {
     decl_stream << "#include <curand_kernel.h>\n";
   }
 
+  if (need_nvshmem_) {
+    decl_stream << "#include <tl_templates/cuda/nvshmem.h>\n";
+  }
+
   decl_stream << "#include <tl_templates/cuda/gemm.h>\n";
   if (enable_sparse_gemm_) {
     decl_stream << "#include <tl_templates/cuda/gemm_sp.h>\n";
@@ -2673,6 +2677,86 @@ void CodeGenTileLangCUDA::VisitExpr_(const CallNode *op, std::ostream &os) {
     os << "tl::warp_reduce_bitand(" << PrintExpr(op->args[0]) << ")";
   } else if (op->op.same_as(tl::warp_reduce_bitor())) {
     os << "tl::warp_reduce_bitor(" << PrintExpr(op->args[0]) << ")";
+  }
+  // ============================================================================
+  // NVSHMEM Distributed Communication Intrinsics
+  // ============================================================================
+  else if (op->op.same_as(tl::nvshmem_my_pe())) {
+    need_nvshmem_ = true;
+    os << "tl::dist::my_pe()";
+  } else if (op->op.same_as(tl::nvshmem_n_pes())) {
+    need_nvshmem_ = true;
+    os << "tl::dist::n_pes()";
+  } else if (op->op.same_as(tl::nvshmem_my_node())) {
+    need_nvshmem_ = true;
+    os << "tl::dist::my_node()";
+  } else if (op->op.same_as(tl::nvshmem_n_nodes())) {
+    need_nvshmem_ = true;
+    os << "tl::dist::n_nodes()";
+  } else if (op->op.same_as(tl::nvshmem_local_pe())) {
+    need_nvshmem_ = true;
+    os << "tl::dist::local_pe()";
+  } else if (op->op.same_as(tl::nvshmem_local_size())) {
+    need_nvshmem_ = true;
+    os << "tl::dist::local_size()";
+  } else if (op->op.same_as(tl::nvshmem_putmem_nbi_block())) {
+    need_nvshmem_ = true;
+    os << "tl::dist::putmem_nbi_block(" << PrintExpr(op->args[0]) << ", "
+       << PrintExpr(op->args[1]) << ", " << PrintExpr(op->args[2]) << ", "
+       << PrintExpr(op->args[3]) << ")";
+  } else if (op->op.same_as(tl::nvshmem_getmem_nbi_block())) {
+    need_nvshmem_ = true;
+    os << "tl::dist::getmem_nbi_block(" << PrintExpr(op->args[0]) << ", "
+       << PrintExpr(op->args[1]) << ", " << PrintExpr(op->args[2]) << ", "
+       << PrintExpr(op->args[3]) << ")";
+  } else if (op->op.same_as(tl::nvshmem_putmem_signal_nbi_block())) {
+    need_nvshmem_ = true;
+    os << "tl::dist::putmem_signal_nbi_block(" << PrintExpr(op->args[0]) << ", "
+       << PrintExpr(op->args[1]) << ", " << PrintExpr(op->args[2]) << ", "
+       << PrintExpr(op->args[3]) << ", " << PrintExpr(op->args[4]) << ", "
+       << PrintExpr(op->args[5]) << ", " << PrintExpr(op->args[6]) << ")";
+  } else if (op->op.same_as(tl::nvshmem_signal_wait_until())) {
+    need_nvshmem_ = true;
+    os << "tl::dist::signal_wait_until(" << PrintExpr(op->args[0]) << ", "
+       << PrintExpr(op->args[1]) << ", " << PrintExpr(op->args[2]) << ")";
+  } else if (op->op.same_as(tl::nvshmem_signal_op())) {
+    need_nvshmem_ = true;
+    os << "tl::dist::signal_op(" << PrintExpr(op->args[0]) << ", "
+       << PrintExpr(op->args[1]) << ", " << PrintExpr(op->args[2]) << ")";
+  } else if (op->op.same_as(tl::nvshmem_barrier_all_block())) {
+    need_nvshmem_ = true;
+    this->PrintIndent();
+    this->stream << "tl::dist::barrier_all_block();\n";
+  } else if (op->op.same_as(tl::nvshmem_node_barrier_block())) {
+    need_nvshmem_ = true;
+    this->PrintIndent();
+    this->stream << "tl::dist::node_barrier_block();\n";
+  } else if (op->op.same_as(tl::nvshmem_fence())) {
+    need_nvshmem_ = true;
+    this->PrintIndent();
+    this->stream << "tl::dist::fence();\n";
+  } else if (op->op.same_as(tl::nvshmem_quiet())) {
+    need_nvshmem_ = true;
+    this->PrintIndent();
+    this->stream << "tl::dist::quiet();\n";
+  } else if (op->op.same_as(tl::nvshmem_atomic_fetch_add_int64())) {
+    need_nvshmem_ = true;
+    os << "tl::dist::atomic_fetch_add_int64(" << PrintExpr(op->args[0]) << ", "
+       << PrintExpr(op->args[1]) << ", " << PrintExpr(op->args[2]) << ")";
+  } else if (op->op.same_as(tl::nvshmem_atomic_fetch_add_int32())) {
+    need_nvshmem_ = true;
+    os << "tl::dist::atomic_fetch_add_int32(" << PrintExpr(op->args[0]) << ", "
+       << PrintExpr(op->args[1]) << ", " << PrintExpr(op->args[2]) << ")";
+  } else if (op->op.same_as(tl::nvshmem_atomic_compare_swap_int64())) {
+    need_nvshmem_ = true;
+    os << "tl::dist::atomic_compare_swap_int64(" << PrintExpr(op->args[0])
+       << ", " << PrintExpr(op->args[1]) << ", " << PrintExpr(op->args[2])
+       << ", " << PrintExpr(op->args[3]) << ")";
+  } else if (op->op.same_as(tl::nvshmem_atomic_compare_swap_int32())) {
+    need_nvshmem_ = true;
+    os << "tl::dist::atomic_compare_swap_int32(" << PrintExpr(op->args[0])
+       << ", " << PrintExpr(op->args[1]) << ", " << PrintExpr(op->args[2])
+       << ", " << PrintExpr(op->args[3]) << ")";
   } else {
     CodeGenC::VisitExpr_(op, os);
   }
