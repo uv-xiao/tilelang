@@ -608,6 +608,143 @@ TVM_DLL const Op &warp_reduce_bitor();
  */
 TVM_DLL const Op &__ldg();
 
+// ============================================================================
+// NVSHMEM Distributed Communication Intrinsics
+// ============================================================================
+
+/*!
+ * \brief Get this PE's global ID (0..n_pes-1)
+ *
+ * nvshmem_my_pe()
+ */
+TVM_DLL const Op &nvshmem_my_pe();
+
+/*!
+ * \brief Get total number of PEs
+ *
+ * nvshmem_n_pes()
+ */
+TVM_DLL const Op &nvshmem_n_pes();
+
+/*!
+ * \brief Get this PE's node ID
+ *
+ * nvshmem_my_node()
+ */
+TVM_DLL const Op &nvshmem_my_node();
+
+/*!
+ * \brief Get total number of nodes
+ *
+ * nvshmem_n_nodes()
+ */
+TVM_DLL const Op &nvshmem_n_nodes();
+
+/*!
+ * \brief Get local PE index within node
+ *
+ * nvshmem_local_pe()
+ */
+TVM_DLL const Op &nvshmem_local_pe();
+
+/*!
+ * \brief Get number of PEs on this node
+ *
+ * nvshmem_local_size()
+ */
+TVM_DLL const Op &nvshmem_local_size();
+
+/*!
+ * \brief Non-blocking put (block-level)
+ *
+ * nvshmem_putmem_nbi_block(dest, source, bytes, pe)
+ */
+TVM_DLL const Op &nvshmem_putmem_nbi_block();
+
+/*!
+ * \brief Non-blocking get (block-level)
+ *
+ * nvshmem_getmem_nbi_block(dest, source, bytes, pe)
+ */
+TVM_DLL const Op &nvshmem_getmem_nbi_block();
+
+/*!
+ * \brief Non-blocking put with signal (block-level)
+ *
+ * nvshmem_putmem_signal_nbi_block(dest, source, bytes, sig_addr, signal, sig_op, pe)
+ */
+TVM_DLL const Op &nvshmem_putmem_signal_nbi_block();
+
+/*!
+ * \brief Wait until signal satisfies condition
+ *
+ * nvshmem_signal_wait_until(sig_addr, cmp, cmp_value)
+ */
+TVM_DLL const Op &nvshmem_signal_wait_until();
+
+/*!
+ * \brief Fetch and update signal atomically
+ *
+ * nvshmem_signal_op(sig_addr, signal, sig_op)
+ */
+TVM_DLL const Op &nvshmem_signal_op();
+
+/*!
+ * \brief Global barrier across all PEs (block-level)
+ *
+ * nvshmem_barrier_all_block()
+ */
+TVM_DLL const Op &nvshmem_barrier_all_block();
+
+/*!
+ * \brief Intra-node barrier (block-level)
+ *
+ * nvshmem_node_barrier_block()
+ */
+TVM_DLL const Op &nvshmem_node_barrier_block();
+
+/*!
+ * \brief Memory fence
+ *
+ * nvshmem_fence()
+ */
+TVM_DLL const Op &nvshmem_fence();
+
+/*!
+ * \brief Wait for all outstanding operations to complete
+ *
+ * nvshmem_quiet()
+ */
+TVM_DLL const Op &nvshmem_quiet();
+
+/*!
+ * \brief Remote atomic fetch-add (64-bit)
+ *
+ * nvshmem_atomic_fetch_add_int64(dest, value, pe)
+ */
+TVM_DLL const Op &nvshmem_atomic_fetch_add_int64();
+
+/*!
+ * \brief Remote atomic fetch-add (32-bit)
+ *
+ * nvshmem_atomic_fetch_add_int32(dest, value, pe)
+ */
+TVM_DLL const Op &nvshmem_atomic_fetch_add_int32();
+
+/*!
+ * \brief Remote atomic compare-and-swap (64-bit)
+ *
+ * nvshmem_atomic_compare_swap_int64(dest, compare, value, pe)
+ */
+TVM_DLL const Op &nvshmem_atomic_compare_swap_int64();
+
+/*!
+ * \brief Remote atomic compare-and-swap (32-bit)
+ *
+ * nvshmem_atomic_compare_swap_int32(dest, compare, value, pe)
+ */
+TVM_DLL const Op &nvshmem_atomic_compare_swap_int32();
+
 } // namespace tl
 } // namespace tvm
 
