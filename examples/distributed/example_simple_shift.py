@@ -28,6 +28,7 @@ def simple_shift(M, N, block_M, block_N, dtype="float16"):
 WORLD_SIZE, RANK, LOCAL_RANK = init_distributed()
 
 func = simple_shift(128, 128, 128, 128)
+# Auto-selects cython backend when TILELANG_USE_DISTRIBUTED=1 is set
 kernel = tilelang.compile(func, out_idx=-1)
 
 # Get CUDA Source

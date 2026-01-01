@@ -1,11 +1,13 @@
+// Copyright (c) Tile-AI Corporation.
+// Licensed under the MIT License.
+
 /*!
  * \file tl/op/remote_copy.h
- * \brief Remote copy operators.
- *
+ * \brief Remote copy operators for distributed computing.
  */
 
-#ifndef TVM_TL_OP_BULK_COPY_H_
-#define TVM_TL_OP_BULK_COPY_H_
+#ifndef TVM_TL_OP_REMOTE_COPY_H_
+#define TVM_TL_OP_REMOTE_COPY_H_
 
 #include <tvm/target/target.h>
 #include <tvm/tir/stmt_functor.h>
@@ -18,6 +20,9 @@ namespace tl {
 
 using namespace tir;
 
+/*!
+ * \brief Put operation for remote memory copy (local -> remote).
+ */
 class PutOpNode : public TileOperatorNode {
 public:
   PrimExpr src_addr;           ///< Address of the source buffer (address_of)
@@ -30,17 +35,13 @@ public:
   Buffer src_buffer;           ///< Source buffer reference
   Buffer dst_buffer;           ///< Destination buffer reference
   Array<PrimExpr> src_indices; ///< Source indices used for address computation
-  Array<PrimExpr>
-      dst_indices;   ///< Destination indices used for address computation
-  std::string scope; ///< Scope: {warp, block}
-  bool enable_aggressive_vectorize; ///< Whether to enable aggressive
-                                    ///< vectorization, only effctive for
-                                    ///< warp-scope
+  Array<PrimExpr> dst_indices; ///< Destination indices used for address computation
+  std::string scope;           ///< Scope: {warp, block}
+  bool enable_aggressive_vectorize; ///< Whether to enable aggressive vectorization
 
   bool is_distributed() const;
 
-  static constexpr const char *_type_key = "tl.PutOp";
-  TVM_DECLARE_FINAL_OBJECT_INFO(PutOpNode, TileOperatorNode);
+  TVM_FFI_DECLARE_OBJECT_INFO_FINAL("tl.PutOp", PutOpNode, TileOperatorNode);
 
   Stmt Lower(const LowerArgs &T, arith::Analyzer *analyzer) const override;
   LayoutMap InferLayout(const LayoutInferArgs &T,
@@ -63,37 +64,6 @@ public:
         .def_ro("scope", &PutOpNode::scope);
   }
 
-  bool SEqualReduce(const PutOpNode *other, SEqualReducer equal) const {
-    return equal(src_addr, other->src_addr) &&
-           equal(dst_addr, other->dst_addr) &&
-           equal(src_offset, other->src_offset) &&
-           equal(dst_offset, other->dst_offset) &&
-           equal(copy_size, other->copy_size) && equal(dst_pe, other->dst_pe) &&
-           equal(unroll_factor, other->unroll_factor) &&
-           equal(src_buffer, other->src_buffer) &&
-           equal(dst_buffer, other->dst_buffer) &&
-           equal(src_indices, other->src_indices) &&
-           equal(dst_indices, other->dst_indices) && scope == other->scope;
-  }
-
-  void SHashReduce(SHashReducer hash_reduce) const {
-    hash_reduce(src_addr);
-    hash_reduce(dst_addr);
-    hash_reduce(src_offset);
-    hash_reduce(dst_offset);
-    hash_reduce(copy_size);
-    hash_reduce(dst_pe);
-    hash_reduce(unroll_factor);
-    hash_reduce(src_buffer);
-    hash_reduce(dst_buffer);
-    hash_reduce(src_indices);
-    hash_reduce(dst_indices);
-    hash_reduce(scope);
-  }
-
-  static constexpr bool _type_has_method_sequal_reduce = true;
-  static constexpr bool _type_has_method_shash_reduce = true;
-
   PrimExpr get_offset(const BufferLoadNode *load) const;
 
 private:
@@ -105,11 +75,14 @@ private:
 
 class PutOp : public TileOperator {
 public:
-  TVM_DEFINE_OBJECT_REF_METHODS(PutOp, TileOperator, PutOpNode);
+  TVM_FFI_DEFINE_OBJECT_REF_METHODS_NULLABLE(PutOp, TileOperator, PutOpNode);
   TVM_DLL PutOp(Array<PrimExpr> args, BufferMap vmap);
   static const Op &Get();
 };
 
+/*!
+ * \brief Get operation for remote memory copy (remote -> local).
+ */
 class GetOpNode : public TileOperatorNode {
 public:
   PrimExpr src_addr;           ///< Remote source buffer address
@@ -122,17 +95,13 @@ public:
   Buffer src_buffer;           ///< Source buffer reference
   Buffer dst_buffer;           ///< Destination buffer reference
   Array<PrimExpr> src_indices; ///< Source indices used for address computation
-  Array<PrimExpr>
-      dst_indices;   ///< Destination indices used for address computation
-  std::string scope; ///< Scope: {warp, block}
-  bool enable_aggressive_vectorize; ///< Whether to enable aggressive
-                                    ///< vectorization, only effctive for
-                                    ///< warp-scope
+  Array<PrimExpr> dst_indices; ///< Destination indices used for address computation
+  std::string scope;           ///< Scope: {warp, block}
+  bool enable_aggressive_vectorize; ///< Whether to enable aggressive vectorization
 
   bool is_distributed() const;
 
-  static constexpr const char *_type_key = "tl.GetOp";
-  TVM_DECLARE_FINAL_OBJECT_INFO(GetOpNode, TileOperatorNode);
+  TVM_FFI_DECLARE_OBJECT_INFO_FINAL("tl.GetOp", GetOpNode, TileOperatorNode);
 
   Stmt Lower(const LowerArgs &T, arith::Analyzer *analyzer) const override;
   LayoutMap InferLayout(const LayoutInferArgs &T,
@@ -155,37 +124,6 @@ public:
         .def_ro("scope", &GetOpNode::scope);
   }
 
-  bool SEqualReduce(const GetOpNode *other, SEqualReducer equal) const {
-    return equal(src_addr, other->src_addr) &&
-           equal(dst_addr, other->dst_addr) &&
-           equal(src_offset, other->src_offset) &&
-           equal(dst_offset, other->dst_offset) &&
-           equal(copy_size, other->copy_size) && equal(src_pe, other->src_pe) &&
-           equal(unroll_factor, other->unroll_factor) &&
-           equal(src_buffer, other->src_buffer) &&
-           equal(dst_buffer, other->dst_buffer) &&
-           equal(src_indices, other->src_indices) &&
-           equal(dst_indices, other->dst_indices) && scope == other->scope;
-  }
-
-  void SHashReduce(SHashReducer hash_reduce) const {
-    hash_reduce(src_addr);
-    hash_reduce(dst_addr);
-    hash_reduce(src_offset);
-    hash_reduce(dst_offset);
-    hash_reduce(copy_size);
-    hash_reduce(src_pe);
-    hash_reduce(unroll_factor);
-    hash_reduce(src_buffer);
-    hash_reduce(dst_buffer);
-    hash_reduce(src_indices);
-    hash_reduce(dst_indices);
-    hash_reduce(scope);
-  }
-
-  static constexpr bool _type_has_method_sequal_reduce = true;
-  static constexpr bool _type_has_method_shash_reduce = true;
-
   PrimExpr get_offset(const BufferLoadNode *load) const;
 
 private:
@@ -197,11 +135,14 @@ private:
 
 class GetOp : public TileOperator {
 public:
-  TVM_DEFINE_OBJECT_REF_METHODS(GetOp, TileOperator, GetOpNode);
+  TVM_FFI_DEFINE_OBJECT_REF_METHODS_NULLABLE(GetOp, TileOperator, GetOpNode);
   TVM_DLL GetOp(Array<PrimExpr> args, BufferMap vmap);
   static const Op &Get();
 };
 
+/*!
+ * \brief Store operation for remote memory (with signaling).
+ */
 class StOpNode : public TileOperatorNode {
 public:
   PrimExpr dst;    ///< Destination address
@@ -213,8 +154,7 @@ public:
 
   bool is_distributed() const;
 
-  static constexpr const char *_type_key = "tl.StOp";
-  TVM_DECLARE_FINAL_OBJECT_INFO(StOpNode, TileOperatorNode);
+  TVM_FFI_DECLARE_OBJECT_INFO_FINAL("tl.StOp", StOpNode, TileOperatorNode);
 
   Stmt Lower(const LowerArgs &T, arith::Analyzer *analyzer) const override;
   LayoutMap InferLayout(const LayoutInferArgs &T,
@@ -232,33 +172,18 @@ public:
         .def_ro("sem", &StOpNode::sem)
         .def_ro("na", &StOpNode::na);
   }
-
-  bool SEqualReduce(const StOpNode *other, SEqualReducer equal) const {
-    return equal(dst, other->dst) && equal(value, other->value) &&
-           equal(dst_pe, other->dst_pe) && scope == other->scope &&
-           sem == other->sem && na == other->na;
-  }
-
-  void SHashReduce(SHashReducer hash_reduce) const {
-    hash_reduce(dst);
-    hash_reduce(value);
-    hash_reduce(dst_pe);
-    hash_reduce(scope);
-    hash_reduce(sem);
-    hash_reduce(na);
-  }
-
-  static constexpr bool _type_has_method_sequal_reduce = true;
-  static constexpr bool _type_has_method_shash_reduce = true;
 };
 
 class StOp : public TileOperator {
 public:
-  TVM_DEFINE_OBJECT_REF_METHODS(StOp, TileOperator, StOpNode);
+  TVM_FFI_DEFINE_OBJECT_REF_METHODS_NULLABLE(StOp, TileOperator, StOpNode);
   TVM_DLL StOp(Array<PrimExpr> args, BufferMap vmap);
   static const Op &Get();
 };
 
+/*!
+ * \brief Load operation for remote memory (with signaling).
+ */
 class LdOpNode : public TileOperatorNode {
 public:
   PrimExpr src;    ///< Source address
@@ -271,8 +196,7 @@ public:
 
   bool is_distributed() const;
 
-  static constexpr const char *_type_key = "tl.LdOp";
-  TVM_DECLARE_FINAL_OBJECT_INFO(LdOpNode, TileOperatorNode);
+  TVM_FFI_DECLARE_OBJECT_INFO_FINAL("tl.LdOp", LdOpNode, TileOperatorNode);
 
   Stmt Lower(const LowerArgs &T, arith::Analyzer *analyzer) const override;
   LayoutMap InferLayout(const LayoutInferArgs &T,
@@ -291,30 +215,11 @@ public:
         .def_ro("na", &LdOpNode::na)
         .def_ro("nc", &LdOpNode::nc);
   }
-
-  bool SEqualReduce(const LdOpNode *other, SEqualReducer equal) const {
-    return equal(src, other->src) && equal(value, other->value) &&
-           equal(src_pe, other->src_pe) && scope == other->scope &&
-           sem == other->sem && na == other->na && nc == other->nc;
-  }
-
-  void SHashReduce(SHashReducer hash_reduce) const {
-    hash_reduce(src);
-    hash_reduce(value);
-    hash_reduce(src_pe);
-    hash_reduce(scope);
-    hash_reduce(sem);
-    hash_reduce(na);
-    hash_reduce(nc);
-  }
-
-  static constexpr bool _type_has_method_sequal_reduce = true;
-  static constexpr bool _type_has_method_shash_reduce = true;
 };
 
 class LdOp : public TileOperator {
 public:
-  TVM_DEFINE_OBJECT_REF_METHODS(LdOp, TileOperator, LdOpNode);
+  TVM_FFI_DEFINE_OBJECT_REF_METHODS_NULLABLE(LdOp, TileOperator, LdOpNode);
   TVM_DLL LdOp(Array<PrimExpr> args, BufferMap vmap);
   static const Op &Get();
 };
@@ -322,4 +227,4 @@ public:
 } // namespace tl
 } // namespace tvm
 
-#endif //  TVM_TL_OP_BULK_COPY_H_
+#endif // TVM_TL_OP_REMOTE_COPY_H_

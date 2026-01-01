@@ -62,6 +62,19 @@ def pathlib_wrapper(func):
 
 @pathlib_wrapper
 def nvshmem_deps():
+    # Try to find nvshmem from pip-installed nvidia-nvshmem-cu12 first
+    try:
+        import nvidia.nvshmem
+        nvshmem_pip_home = Path(nvidia.nvshmem.__path__[0])
+        if (nvshmem_pip_home / "include").exists() and (nvshmem_pip_home / "lib").exists():
+            include_dirs = [nvshmem_pip_home / "include"]
+            library_dirs = [nvshmem_pip_home / "lib"]
+            libraries = ["nvshmem_host", "nvshmem_device"]
+            return include_dirs, library_dirs, libraries
+    except ImportError:
+        pass
+
+    # Fall back to NVSHMEM_SRC environment variable or 3rdparty location
     nvshmem_home = Path(os.environ.get("NVSHMEM_SRC", root_path / "../../../3rdparty/nvshmem_src"))
     include_dirs = [nvshmem_home / "build/src/include"]
     library_dirs = [nvshmem_home / "build/src/lib"]

@@ -1,3 +1,6 @@
+// Copyright (c) Tile-AI Corporation.
+// Licensed under the MIT License.
+
 /*!
  * \file tl/op/distributed.cc
  * \brief Distributed intrinsics.
@@ -211,6 +214,9 @@ TIR_DEFINE_TL_BUILTIN(get_uintptr_t)
     .set_num_inputs(1)
     .set_attr<TCallEffectKind>("TCallEffectKind",
                                Integer(CallEffectKind::kOpaque));
+
+// Note: put, get, wait are implemented as TileOperators in remote_copy.cc
+// Note: wait_eq is defined in sync.cc (simple builtin) and remote_copy.cc uses it
 
 } // namespace tl
 } // namespace tvm

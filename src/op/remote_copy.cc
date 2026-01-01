@@ -51,7 +51,7 @@ PrimExpr PutOpNode::MakeRemappedAddress(const LowerArgs &T,
 }
 
 PutOp::PutOp(Array<PrimExpr> args, BufferMap vmap) {
-  ObjectPtr<PutOpNode> node = make_object<PutOpNode>();
+  ObjectPtr<PutOpNode> node = tvm::ffi::make_object<PutOpNode>();
   node->src_addr = args[0];
   node->dst_addr = args[1];
   ICHECK(node->src_addr.as<CallNode>()) << "src_addr must be a call node";
@@ -129,7 +129,7 @@ LayoutMap PutOpNode::InferLayout(const LayoutInferArgs &T,
 }
 
 TileOperator PutOpNode::Clone() const {
-  auto node = make_object<PutOpNode>(*this);
+  auto node = tvm::ffi::make_object<PutOpNode>(*this);
   return PutOp(node);
 }
 
@@ -161,7 +161,7 @@ PrimExpr GetOpNode::MakeRemappedAddress(const LowerArgs &T,
 }
 
 GetOp::GetOp(Array<PrimExpr> args, BufferMap vmap) {
-  ObjectPtr<GetOpNode> node = make_object<GetOpNode>();
+  ObjectPtr<GetOpNode> node = tvm::ffi::make_object<GetOpNode>();
   node->src_addr = args[0];
   node->dst_addr = args[1];
   ICHECK(node->src_addr.as<CallNode>()) << "src_addr must be a call node";
@@ -241,12 +241,12 @@ LayoutMap GetOpNode::InferLayout(const LayoutInferArgs &T,
 }
 
 TileOperator GetOpNode::Clone() const {
-  auto node = make_object<GetOpNode>(*this);
+  auto node = tvm::ffi::make_object<GetOpNode>(*this);
   return GetOp(node);
 }
 
 StOp::StOp(Array<PrimExpr> args, BufferMap vmap) {
-  ObjectPtr<StOpNode> node = make_object<StOpNode>();
+  ObjectPtr<StOpNode> node = tvm::ffi::make_object<StOpNode>();
   node->dst = args[0];
   ICHECK(node->dst.as<CallNode>()) << "dst must be a call node";
   ICHECK(node->dst.as<CallNode>()->op.same_as(builtin::address_of()))
@@ -309,12 +309,12 @@ LayoutMap StOpNode::InferLayout(const LayoutInferArgs &T,
 }
 
 TileOperator StOpNode::Clone() const {
-  auto node = make_object<StOpNode>(*this);
+  auto node = tvm::ffi::make_object<StOpNode>(*this);
   return StOp(node);
 }
 
 LdOp::LdOp(Array<PrimExpr> args, BufferMap vmap) {
-  ObjectPtr<LdOpNode> node = make_object<LdOpNode>();
+  ObjectPtr<LdOpNode> node = tvm::ffi::make_object<LdOpNode>();
   node->src = args[0];
   ICHECK(node->src.as<CallNode>()) << "src must be a call node";
   ICHECK(node->src.as<CallNode>()->op.same_as(builtin::address_of()))
@@ -378,7 +378,7 @@ LayoutMap LdOpNode::InferLayout(const LayoutInferArgs &T,
 }
 
 TileOperator LdOpNode::Clone() const {
-  auto node = make_object<LdOpNode>(*this);
+  auto node = tvm::ffi::make_object<LdOpNode>(*this);
   return LdOp(node);
 }
 
@@ -398,10 +398,10 @@ TIR_REGISTER_TL_OP(StOp, st).set_num_inputs(6).set_attr<TCallEffectKind>(
 TIR_REGISTER_TL_OP(LdOp, ld).set_num_inputs(7).set_attr<TCallEffectKind>(
     "TCallEffectKind", Integer(CallEffectKind::kOpaque));
 
-TVM_FFI_STATIC_INIT_BLOCK({ PutOpNode::RegisterReflection(); });
-TVM_FFI_STATIC_INIT_BLOCK({ GetOpNode::RegisterReflection(); });
-TVM_FFI_STATIC_INIT_BLOCK({ StOpNode::RegisterReflection(); });
-TVM_FFI_STATIC_INIT_BLOCK({ LdOpNode::RegisterReflection(); });
+TVM_FFI_STATIC_INIT_BLOCK() { PutOpNode::RegisterReflection(); }
+TVM_FFI_STATIC_INIT_BLOCK() { GetOpNode::RegisterReflection(); }
+TVM_FFI_STATIC_INIT_BLOCK() { StOpNode::RegisterReflection(); }
+TVM_FFI_STATIC_INIT_BLOCK() { LdOpNode::RegisterReflection(); }
 
 } // namespace tl
 } // namespace tvm

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import torch
+import torch  # Must import torch first before tilescale_ext
 import torch.distributed as dist
 import datetime
 import os
@@ -19,6 +19,7 @@ else:
     from cuda import cuda, cudart
 
 import ctypes
+# Import tilescale_ext after torch to ensure proper library loading order
 from tilescale_ext import _create_tensor, _create_ipc_handle, _sync_ipc_handles, create_host_device_tensor
 import functools
 from functools import lru_cache
