@@ -11,6 +11,7 @@ This directory contains documentation for the merge of mainstream TileLang into 
 | [MERGE_ANALYSIS.md](MERGE_ANALYSIS.md) | Detailed analysis of merged features and status |
 | [EXEC_BACKEND_ANALYSIS.md](EXEC_BACKEND_ANALYSIS.md) | Execution backend architecture for NVIDIA/NVSHMEM |
 | [culink_nvshmem_tvm_ffi.md](culink_nvshmem_tvm_ffi.md) | Technical notes on NVSHMEM linking with TVM FFI |
+| [compare_to_tilang/](compare_to_tilang/) | Detailed study of TileScale's contributions to TileLang |
 
 ## Quick Start
 
