@@ -111,24 +111,6 @@ using OpBuilderFunc =
             return Entry(args, annotations);                                   \
           })
 
-// Macro for distributed tile operators that use BufferMap instead of annotations
-// Used by remote_copy and sync operators
-using OpBuilderFuncBufferMap =
-    ffi::TypedFunction<TileOperator(Array<PrimExpr>, BufferMap)>;
-
-#define TIR_REGISTER_TL_OP(Entry, OpName)                                      \
-  const Op &Entry::Get() {                                                     \
-    static const Op &op = Op::Get("tl." #OpName);                              \
-    return op;                                                                 \
-  }                                                                            \
-  TVM_REGISTER_OP("tl." #OpName)                                               \
-      .set_attr<TScriptPrinterName>("TScriptPrinterName", #OpName)             \
-      .set_attr<OpBuilderFuncBufferMap>(                                       \
-          "TLOpBuilder",                                                       \
-          [](Array<PrimExpr> args, BufferMap vmap) {                           \
-            return Entry(args, vmap);                                          \
-          })
-
 } // namespace tl
 } // namespace tvm
 

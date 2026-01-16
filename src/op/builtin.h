@@ -608,10 +608,6 @@ TVM_DLL const Op &warp_reduce_bitor();
  */
 TVM_DLL const Op &__ldg();
 
-// =====================================================================
-// TileScale Distributed Features (restored from original tilescale)
-// =====================================================================
-
 /*!
  * \brief Check if any lane in the warp has a true value
  *

@@ -8,7 +8,7 @@ from tilelang.language.kernel import get_thread_bindings, get_block_extents
 from tilelang.utils.target import check_hip_availability
 from tvm import DataType, tir
 from tvm.runtime import convert
-from typing import Any
+from typing import Any, Literal
 from tvm.tir import PrimExpr, Var, Call, BufferLoad, BufferRegion
 
 _IS_HIP_AVAILABLE = check_hip_availability()
@@ -930,7 +930,7 @@ def ptx_mma_sm70(
 
 
 # =====================================================================
-# TileScale Distributed Features (restored from original tilescale)
+# TileScale Distributed Features
 # =====================================================================
 
 

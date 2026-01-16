@@ -57,12 +57,6 @@ public:
 
   TVM_FFI_DECLARE_OBJECT_INFO_FINAL("tl.WaitOp", WaitOpNode, TileOperatorNode);
 
-  Stmt Lower(const LowerArgs &T, arith::Analyzer *analyzer) const override;
-  LayoutMap InferLayout(const LayoutInferArgs &T,
-                        InferLevel level) const override;
-  static const Op &Get();
-  TileOperator Clone() const override;
-
   static void RegisterReflection() {
     namespace refl = tvm::ffi::reflection;
     refl::ObjectDef<WaitOpNode>()
@@ -71,6 +65,12 @@ public:
         .def_ro("peer", &WaitOpNode::peer)
         .def_ro("relation", &WaitOpNode::relation);
   }
+
+  Stmt Lower(const LowerArgs &T, arith::Analyzer *analyzer) const override;
+  LayoutMap InferLayout(const LayoutInferArgs &T,
+                        InferLevel level) const override;
+  static const Op &Get();
+  TileOperator Clone() const override;
 };
 
 /*!
@@ -79,7 +79,7 @@ public:
 class WaitOp : public TileOperator {
 public:
   TVM_FFI_DEFINE_OBJECT_REF_METHODS_NULLABLE(WaitOp, TileOperator, WaitOpNode);
-  TVM_DLL WaitOp(Array<PrimExpr> args, BufferMap vmap);
+  TVM_DLL WaitOp(Array<PrimExpr> args, Map<String, ObjectRef> annotations = Map<String, ObjectRef>());
   static const Op &Get();
 };
 
@@ -108,20 +108,21 @@ public:
 
   TVM_FFI_DECLARE_OBJECT_INFO_FINAL("tl.BarrierBlocksOp", BarrierBlocksOpNode, TileOperatorNode);
 
-  Stmt Lower(const LowerArgs &T, arith::Analyzer *analyzer) const override;
-  LayoutMap InferLayout(const LayoutInferArgs &T,
-                        InferLevel level) const override;
-  static const Op &Get();
-  TileOperator Clone() const override;
-
   static void RegisterReflection() {
     namespace refl = tvm::ffi::reflection;
     refl::ObjectDef<BarrierBlocksOpNode>()
         .def_ro("local_bar_addr", &BarrierBlocksOpNode::local_bar_addr)
         .def_ro("offset", &BarrierBlocksOpNode::offset)
         .def_ro("local_bar", &BarrierBlocksOpNode::local_bar)
-        .def_ro("local_indices", &BarrierBlocksOpNode::local_indices);
+        .def_ro("local_indices", &BarrierBlocksOpNode::local_indices)
+        .def_ro("need_fence", &BarrierBlocksOpNode::need_fence);
   }
+
+  Stmt Lower(const LowerArgs &T, arith::Analyzer *analyzer) const override;
+  LayoutMap InferLayout(const LayoutInferArgs &T,
+                        InferLevel level) const override;
+  static const Op &Get();
+  TileOperator Clone() const override;
 
   PrimExpr get_offset(const BufferLoadNode *load) const;
 
@@ -136,7 +137,7 @@ class BarrierBlocksOp : public TileOperator {
 public:
   TVM_FFI_DEFINE_OBJECT_REF_METHODS_NULLABLE(BarrierBlocksOp, TileOperator,
                                               BarrierBlocksOpNode);
-  TVM_DLL BarrierBlocksOp(Array<PrimExpr> args, BufferMap vmap);
+  TVM_DLL BarrierBlocksOp(Array<PrimExpr> args, Map<String, ObjectRef> annotations = Map<String, ObjectRef>());
   static const Op &Get();
 };
 

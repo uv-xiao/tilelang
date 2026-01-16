@@ -380,7 +380,7 @@ TIR_DEFINE_TL_BUILTIN(__ldg).set_num_inputs(-1).set_attr<TCallEffectKind>(
     "TCallEffectKind", Integer(CallEffectKind::kPure));
 
 // =====================================================================
-// TileScale Distributed Features (restored from original tilescale)
+// TileScale Distributed Features
 // =====================================================================
 
 // warp_any: Check if any lane in the warp has a true value

@@ -59,7 +59,7 @@ TIR_DEFINE_TL_BUILTIN(sync_barrier_gpu)
     .set_attr<TCallEffectKind>("TCallEffectKind",
                                Integer(CallEffectKind::kOpaque));
 
-BarrierBlocksOp::BarrierBlocksOp(Array<PrimExpr> args, BufferMap vmap) {
+BarrierBlocksOp::BarrierBlocksOp(Array<PrimExpr> args, Map<String, ObjectRef> annotations) {
   ObjectPtr<BarrierBlocksOpNode> node = tvm::ffi::make_object<BarrierBlocksOpNode>();
   node->local_bar_addr = args[0];
   node->need_fence = bool(args[1].as<IntImmNode>()->value);
@@ -74,7 +74,6 @@ BarrierBlocksOp::BarrierBlocksOp(Array<PrimExpr> args, BufferMap vmap) {
   node->local_bar = load->buffer;
   node->local_indices = load->indices;
   data_ = std::move(node);
-  (void)vmap;
 }
 
 Stmt BarrierBlocksOpNode::Lower(const LowerArgs &T,
@@ -132,14 +131,13 @@ PrimExpr BarrierBlocksOpNode::MakeLocalBarAddr(const LowerArgs &T) const {
               {BufferLoad(buffer, local_indices)});
 }
 
-WaitOp::WaitOp(Array<PrimExpr> args, BufferMap vmap) {
+WaitOp::WaitOp(Array<PrimExpr> args, Map<String, ObjectRef> annotations) {
   ObjectPtr<WaitOpNode> node = tvm::ffi::make_object<WaitOpNode>();
   node->relation = args[0].as<IntImmNode>()->value;
   node->addr = args[1];
   node->expected = args[2];
   node->peer = args[3];
   data_ = std::move(node);
-  (void)vmap;
 }
 
 bool WaitOpNode::is_distributed() const {
@@ -188,12 +186,12 @@ TileOperator WaitOpNode::Clone() const {
   return WaitOp(node);
 }
 
-TIR_REGISTER_TL_OP(BarrierBlocksOp, barrier_blocks)
+TIR_REGISTER_TL_TILE_OP(BarrierBlocksOp, barrier_blocks)
     .set_num_inputs(1)
     .set_attr<TCallEffectKind>("TCallEffectKind",
                                Integer(CallEffectKind::kOpaque));
 
-TIR_REGISTER_TL_OP(WaitOp, wait)
+TIR_REGISTER_TL_TILE_OP(WaitOp, wait)
     .set_num_inputs(4)
     .set_attr<TCallEffectKind>("TCallEffectKind",
                                Integer(CallEffectKind::kOpaque));

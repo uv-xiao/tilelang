@@ -43,12 +43,6 @@ public:
 
   TVM_FFI_DECLARE_OBJECT_INFO_FINAL("tl.PutOp", PutOpNode, TileOperatorNode);
 
-  Stmt Lower(const LowerArgs &T, arith::Analyzer *analyzer) const override;
-  LayoutMap InferLayout(const LayoutInferArgs &T,
-                        InferLevel level) const override;
-  static const Op &Get();
-  TileOperator Clone() const override;
-
   static void RegisterReflection() {
     namespace refl = tvm::ffi::reflection;
     refl::ObjectDef<PutOpNode>()
@@ -61,8 +55,15 @@ public:
         .def_ro("dst_buffer", &PutOpNode::dst_buffer)
         .def_ro("src_indices", &PutOpNode::src_indices)
         .def_ro("dst_indices", &PutOpNode::dst_indices)
-        .def_ro("scope", &PutOpNode::scope);
+        .def_ro("scope", &PutOpNode::scope)
+        .def_ro("enable_aggressive_vectorize", &PutOpNode::enable_aggressive_vectorize);
   }
+
+  Stmt Lower(const LowerArgs &T, arith::Analyzer *analyzer) const override;
+  LayoutMap InferLayout(const LayoutInferArgs &T,
+                        InferLevel level) const override;
+  static const Op &Get();
+  TileOperator Clone() const override;
 
   PrimExpr get_offset(const BufferLoadNode *load) const;
 
@@ -76,7 +77,7 @@ private:
 class PutOp : public TileOperator {
 public:
   TVM_FFI_DEFINE_OBJECT_REF_METHODS_NULLABLE(PutOp, TileOperator, PutOpNode);
-  TVM_DLL PutOp(Array<PrimExpr> args, BufferMap vmap);
+  TVM_DLL PutOp(Array<PrimExpr> args, Map<String, ObjectRef> annotations = Map<String, ObjectRef>());
   static const Op &Get();
 };
 
@@ -103,12 +104,6 @@ public:
 
   TVM_FFI_DECLARE_OBJECT_INFO_FINAL("tl.GetOp", GetOpNode, TileOperatorNode);
 
-  Stmt Lower(const LowerArgs &T, arith::Analyzer *analyzer) const override;
-  LayoutMap InferLayout(const LayoutInferArgs &T,
-                        InferLevel level) const override;
-  static const Op &Get();
-  TileOperator Clone() const override;
-
   static void RegisterReflection() {
     namespace refl = tvm::ffi::reflection;
     refl::ObjectDef<GetOpNode>()
@@ -121,8 +116,15 @@ public:
         .def_ro("dst_buffer", &GetOpNode::dst_buffer)
         .def_ro("src_indices", &GetOpNode::src_indices)
         .def_ro("dst_indices", &GetOpNode::dst_indices)
-        .def_ro("scope", &GetOpNode::scope);
+        .def_ro("scope", &GetOpNode::scope)
+        .def_ro("enable_aggressive_vectorize", &GetOpNode::enable_aggressive_vectorize);
   }
+
+  Stmt Lower(const LowerArgs &T, arith::Analyzer *analyzer) const override;
+  LayoutMap InferLayout(const LayoutInferArgs &T,
+                        InferLevel level) const override;
+  static const Op &Get();
+  TileOperator Clone() const override;
 
   PrimExpr get_offset(const BufferLoadNode *load) const;
 
@@ -136,7 +138,7 @@ private:
 class GetOp : public TileOperator {
 public:
   TVM_FFI_DEFINE_OBJECT_REF_METHODS_NULLABLE(GetOp, TileOperator, GetOpNode);
-  TVM_DLL GetOp(Array<PrimExpr> args, BufferMap vmap);
+  TVM_DLL GetOp(Array<PrimExpr> args, Map<String, ObjectRef> annotations = Map<String, ObjectRef>());
   static const Op &Get();
 };
 
@@ -156,12 +158,6 @@ public:
 
   TVM_FFI_DECLARE_OBJECT_INFO_FINAL("tl.StOp", StOpNode, TileOperatorNode);
 
-  Stmt Lower(const LowerArgs &T, arith::Analyzer *analyzer) const override;
-  LayoutMap InferLayout(const LayoutInferArgs &T,
-                        InferLevel level) const override;
-  static const Op &Get();
-  TileOperator Clone() const override;
-
   static void RegisterReflection() {
     namespace refl = tvm::ffi::reflection;
     refl::ObjectDef<StOpNode>()
@@ -172,12 +168,18 @@ public:
         .def_ro("sem", &StOpNode::sem)
         .def_ro("na", &StOpNode::na);
   }
+
+  Stmt Lower(const LowerArgs &T, arith::Analyzer *analyzer) const override;
+  LayoutMap InferLayout(const LayoutInferArgs &T,
+                        InferLevel level) const override;
+  static const Op &Get();
+  TileOperator Clone() const override;
 };
 
 class StOp : public TileOperator {
 public:
   TVM_FFI_DEFINE_OBJECT_REF_METHODS_NULLABLE(StOp, TileOperator, StOpNode);
-  TVM_DLL StOp(Array<PrimExpr> args, BufferMap vmap);
+  TVM_DLL StOp(Array<PrimExpr> args, Map<String, ObjectRef> annotations = Map<String, ObjectRef>());
   static const Op &Get();
 };
 
@@ -198,12 +200,6 @@ public:
 
   TVM_FFI_DECLARE_OBJECT_INFO_FINAL("tl.LdOp", LdOpNode, TileOperatorNode);
 
-  Stmt Lower(const LowerArgs &T, arith::Analyzer *analyzer) const override;
-  LayoutMap InferLayout(const LayoutInferArgs &T,
-                        InferLevel level) const override;
-  static const Op &Get();
-  TileOperator Clone() const override;
-
   static void RegisterReflection() {
     namespace refl = tvm::ffi::reflection;
     refl::ObjectDef<LdOpNode>()
@@ -215,12 +211,18 @@ public:
         .def_ro("na", &LdOpNode::na)
         .def_ro("nc", &LdOpNode::nc);
   }
+
+  Stmt Lower(const LowerArgs &T, arith::Analyzer *analyzer) const override;
+  LayoutMap InferLayout(const LayoutInferArgs &T,
+                        InferLevel level) const override;
+  static const Op &Get();
+  TileOperator Clone() const override;
 };
 
 class LdOp : public TileOperator {
 public:
   TVM_FFI_DEFINE_OBJECT_REF_METHODS_NULLABLE(LdOp, TileOperator, LdOpNode);
-  TVM_DLL LdOp(Array<PrimExpr> args, BufferMap vmap);
+  TVM_DLL LdOp(Array<PrimExpr> args, Map<String, ObjectRef> annotations = Map<String, ObjectRef>());
   static const Op &Get();
 };
 
