@@ -9,6 +9,7 @@ packaging
 scikit-build-core
 setuptools>=61
 torch
+cuda-python>=12.0.0
 wheel
 z3-solver>=4.13.0
 

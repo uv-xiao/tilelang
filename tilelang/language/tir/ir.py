@@ -18,14 +18,6 @@ def serial(start: PrimExpr, stop: PrimExpr = None, *, annotations: dict[str, Any
     stop : PrimExpr
         The maximum value of iteration.
 
-    step : PrimExpr | int | None
-        Optional step size of iteration. When provided as the third positional
-        argument (or keyword), the loop iterates inclusively with stride `step`:
-        i = start, start+step, ..., <= end. If `end-start` is not divisible by
-        `step`, the last value will be the largest `start + k*step` such that
-        it does not exceed `end` (for positive step). Negative steps are not
-        currently supported.
-
     annotations : Dict[str, Any]
         The optional annotations of the For statement.
 
@@ -34,17 +26,7 @@ def serial(start: PrimExpr, stop: PrimExpr = None, *, annotations: dict[str, Any
     res : frame.ForFrame
         The ForFrame.
     """
-    # If no step is provided, delegate to the upstream builder (supports
-    # both one-arg and two-arg forms).
-    if step is None:
-        return _ir.serial(start=start, stop=stop, annotations=annotations)
-
-    # Step provided: return a spec for the parser override to lower into an
-    # inclusive stepped loop. Require `stop` to be provided explicitly.
-    if stop is None:
-        raise TypeError("T.serial(start, end, step): `end` must be provided when `step` is set")
-
-    return SerialStepSpec(start=start, stop=stop, step=step, annotations=annotations)
+    return _ir.serial(start=start, stop=stop, annotations=annotations)
 
 
 def parallel(start: PrimExpr, stop: PrimExpr = None, *, annotations: dict[str, Any] = None) -> frame.ForFrame:

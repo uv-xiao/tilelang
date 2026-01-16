@@ -41,14 +41,11 @@ dependencies = [
     "tqdm>=4.62.3",
     "typing-extensions>=4.10.0",
     "z3-solver>=4.13.0",
-]
-
-[project.optional-dependencies]
-# TileScale distributed extensions (multi-GPU support)
-distributed = [
     "nvidia-nvshmem-cu12",
     "tilescale_ext @ file:./tilelang/utils/ts_ext",
 ]
+
+[project.optional-dependencies]
 # mldtypes should be greater than 0.5.1
 # if you want to enable fp4
 fp4 = ["ml-dtypes>=0.5.1"]
