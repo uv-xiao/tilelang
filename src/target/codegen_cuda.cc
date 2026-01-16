@@ -293,6 +293,11 @@ std::string CodeGenTileLangCUDA::Finish() {
     decl_stream << "#include <math_constants.h>\n";
   }
 
+  if (use_nvshmem_) {
+    decl_stream << "#include <nvshmem.h>\n";
+    decl_stream << "#include <nvshmemx.h>\n";
+  }
+
   if (need_cooperative_groups_) {
     decl_stream << "#include <cooperative_groups.h>\n";
   }
@@ -316,10 +321,11 @@ std::string CodeGenTileLangCUDA::Finish() {
   decl_stream << "#include <tl_templates/cuda/threadblock_swizzle.h>\n";
   decl_stream << "#include <tl_templates/cuda/debug.h>\n";
   decl_stream << "#include <tl_templates/cuda/intrin.h>\n";
-  // Always include ldst.h for memory semantic load/store operations
-  decl_stream << "#include <tl_templates/cuda/ldst.h>\n";
+
   if (use_distributed_) {
     decl_stream << "#include <tl_templates/cuda/distributed.h>\n";
+    decl_stream << "#include <tl_templates/cuda/sync.h>\n";
+    decl_stream << "#include <tl_templates/cuda/ldst.h>\n";
     decl_stream << "uint64_t __constant__ meta_data[1024];\n";
   }
   decl_stream << "#ifdef ENABLE_BF16\n";
