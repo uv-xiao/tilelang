@@ -42,7 +42,6 @@ dependencies = [
     "typing-extensions>=4.10.0",
     "z3-solver>=4.13.0",
     "nvidia-nvshmem-cu12",
-    "tilescale_ext @ file:./tilelang/utils/ts_ext",
 ]
 
 [project.optional-dependencies]
@@ -99,6 +98,8 @@ include = [
     # Composable Kernel
     "3rdparty/composable_kernel/include",
     "3rdparty/composable_kernel/library",
+    # tilescale_ext C++ extension
+    "tilelang/utils/ts_ext/**",
     "testing/**",
     "examples/**",
 ]
