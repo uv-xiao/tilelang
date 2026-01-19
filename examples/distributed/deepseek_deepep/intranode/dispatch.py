@@ -711,7 +711,7 @@ def cached_dispatch_kernel(
                     # move tail index
                     # here all warps should share the same new tail
                     T.sync_threads(responsible_rank, num_threads_per_rank)
-                    if send_warp_id_in_rank == 0 and T.shuffle_elect(32):
+                    if T.shuffle_elect(96):
                         T.st(
                             channel_tail_idx[responsible_channel, rank],
                             cached_channel_tail_idx,
@@ -809,7 +809,7 @@ def cached_dispatch_kernel(
                     cached_channel_head_idx += num_cur_recv_tokens
                     total_offset += num_cur_recv_tokens
                     T.sync_threads(responsible_rank, num_threads_per_rank)
-                    if recv_warp_id_in_rank == num_warps_per_rank - 1 and T.shuffle_elect(32):
+                    if T.shuffle_elect(96):
                         T.st(
                             channel_head_idx[responsible_channel, responsible_rank],
                             cached_channel_head_idx,
