@@ -333,3 +333,49 @@ install(
   TARGETS tvm tvm_runtime tilelang_module tilelang
   LIBRARY DESTINATION tilelang/lib
 )
+
+# Build tilescale_ext PyTorch C++ extension
+if(USE_CUDA)
+  # Find Torch
+  execute_process(
+    COMMAND "${Python_EXECUTABLE}" -c "import torch; print(torch.utils.cmake_prefix_path)"
+    OUTPUT_VARIABLE TORCH_CMAKE_PREFIX_PATH
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    RESULT_VARIABLE TORCH_CMAKE_RESULT
+  )
+  if(TORCH_CMAKE_RESULT EQUAL 0 AND EXISTS "${TORCH_CMAKE_PREFIX_PATH}")
+    list(APPEND CMAKE_PREFIX_PATH "${TORCH_CMAKE_PREFIX_PATH}")
+  endif()
+
+  find_package(Torch QUIET)
+  if(Torch_FOUND)
+    message(STATUS "Building tilescale_ext with Torch ${Torch_VERSION}")
+
+    set(TILESCALE_EXT_SOURCES
+      ${CMAKE_CURRENT_SOURCE_DIR}/tilelang/utils/ts_ext/ts_ext_bindings.cpp
+      ${CMAKE_CURRENT_SOURCE_DIR}/tilelang/utils/ts_ext/tensor.cpp
+      ${CMAKE_CURRENT_SOURCE_DIR}/tilelang/utils/ts_ext/ipc_ops.cpp
+    )
+
+    python_add_library(tilescale_ext_C MODULE ${TILESCALE_EXT_SOURCES} WITH_SOABI)
+    target_compile_definitions(tilescale_ext_C PRIVATE TORCH_EXTENSION_NAME=_C)
+    target_include_directories(tilescale_ext_C PRIVATE
+      ${TORCH_INCLUDE_DIRS}
+      ${CUDAToolkit_INCLUDE_DIRS}
+    )
+    target_link_libraries(tilescale_ext_C PRIVATE ${TORCH_LIBRARIES} CUDA::cudart)
+    target_compile_options(tilescale_ext_C PRIVATE -fPIC)
+    set_target_properties(tilescale_ext_C PROPERTIES
+      OUTPUT_NAME "_C"
+      CXX_STANDARD 17
+      LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+    )
+
+    # Install as tilescale_ext/_C.so so it can be imported as tilescale_ext._C
+    install(TARGETS tilescale_ext_C
+            LIBRARY DESTINATION tilescale_ext
+            RUNTIME DESTINATION tilescale_ext)
+  else()
+    message(WARNING "Torch not found, tilescale_ext will not be built")
+  endif()
+endif()

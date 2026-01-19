@@ -42,7 +42,6 @@ dependencies = [
     "typing-extensions>=4.10.0",
     "z3-solver>=4.13.0",
     "nvidia-nvshmem-cu12",
-    "tilescale_ext @ file:./tilelang/utils/ts_ext",
 ]
 
 [project.optional-dependencies]
@@ -101,6 +100,7 @@ include = [
     "3rdparty/composable_kernel/library",
     # tilescale_ext C++ extension
     "tilelang/utils/ts_ext/**",
+    "tilescale_ext/**",
     "testing/**",
     "examples/**",
 ]
@@ -115,6 +115,7 @@ exclude = [
 
 [tool.scikit-build.wheel.packages]
 tilelang = "tilelang"
+tilescale_ext = "tilescale_ext"
 "tilelang/src" = "src"
 # NOTE: The mapping below places the contents of '3rdparty' inside 'tilelang/3rdparty' in the wheel.
 # This is necessary to find TVM shared libraries at runtime.
