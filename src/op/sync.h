@@ -18,29 +18,6 @@ namespace tl {
 using namespace tir;
 
 /*!
- * \brief Initialize a barrier for GPU-level synchronization
- *
- * void init_barrier_gpu(barrier, expected)
- */
-TVM_DLL const Op &init_barrier_gpu();
-
-/*!
- * \brief Arrive at a barrier for GPU-level synchronization
- *
- * void arrive_barrier_gpu(barrier)
- */
-TVM_DLL const Op &arrive_barrier_gpu();
-
-/*!
- * \brief Wait at a barrier for GPU-level synchronization
- *
- * void wait_barrier_gpu(barrier)
- */
-TVM_DLL const Op &wait_barrier_gpu();
-
-// Note: wait_eq is declared in distributed.h
-
-/*!
  * \brief TileOperatorNode for wait operation.
  *
  * WaitOpNode represents a wait primitive,
@@ -82,15 +59,6 @@ public:
   TVM_DLL WaitOp(Array<PrimExpr> args, Map<String, ObjectRef> annotations = Map<String, ObjectRef>());
   static const Op &Get();
 };
-
-/*!
- * \brief Synchronize at a barrier for GPU-level synchronization
- *
- * void sync_barrier_gpu(barrier)
- */
-TVM_DLL const Op &sync_barrier_gpu();
-
-// Note: sync_grid is declared in builtin.h
 
 /*!
  * \brief Synchronize all blocks at a system-level barrier
@@ -140,6 +108,34 @@ public:
   TVM_DLL BarrierBlocksOp(Array<PrimExpr> args, Map<String, ObjectRef> annotations = Map<String, ObjectRef>());
   static const Op &Get();
 };
+
+/*!
+ * \brief Initialize a barrier for GPU-level synchronization
+ *
+ * void init_barrier_gpu(barrier, expected)
+ */
+TVM_DLL const Op &init_barrier_gpu();
+
+/*!
+ * \brief Arrive at a barrier for GPU-level synchronization
+ *
+ * void arrive_barrier_gpu(barrier)
+ */
+TVM_DLL const Op &arrive_barrier_gpu();
+
+/*!
+ * \brief Wait at a barrier for GPU-level synchronization
+ *
+ * void wait_barrier_gpu(barrier)
+ */
+TVM_DLL const Op &wait_barrier_gpu();
+
+/*!
+ * \brief Synchronize at a barrier for GPU-level synchronization
+ *
+ * void sync_barrier_gpu(barrier)
+ */
+TVM_DLL const Op &sync_barrier_gpu();
 
 /*!
  * \brief Create a memory fence at the block level (visible to all threads in

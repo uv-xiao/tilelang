@@ -15,6 +15,7 @@
 
 #include "../op/builtin.h"
 #include "../op/distributed.h"
+#include "../op/sync.h"
 #include "./ptx.h"
 #include "./utils.h"
 #include "arith/pattern_match.h"
@@ -893,13 +894,15 @@ void CodeGenTileLangCUDA::PrintStorageSync(const CallNode *op) {
     if (args.size() == 1) {
       this->stream << "__syncthreads();\n";
     } else if (args.size() == 2) {
-      auto barrier_id = args[1].as<IntImmNode>()->value;
-      this->stream << "tl::__sync_thread_partial<" << barrier_id << ">();\n";
+      // In contrast to TileLang, here we support runtime determined barrier_id.
+      std::string barrier_id = PrintExpr(args[1]);
+      this->stream << "tl::__sync_thread_partial(" << barrier_id << ");\n";
     } else if (args.size() == 3) {
-      auto barrier_id = args[1].as<IntImmNode>()->value;
-      auto thread_count = args[2].as<IntImmNode>()->value;
-      this->stream << "tl::__sync_thread_partial<" << barrier_id << ", "
-                   << thread_count << ">();\n";
+      // Support runtime determined barrier_id and thread_count.
+      std::string barrier_id = PrintExpr(args[1]);
+      std::string thread_count = PrintExpr(args[2]);
+      this->stream << "tl::__sync_thread_partial(" << barrier_id << ", "
+                   << thread_count << ");\n";
     } else {
       LOG(FATAL) << "Invalid number of arguments for storage sync: "
                  << args.size();
@@ -1684,13 +1687,63 @@ void CodeGenTileLangCUDA::VisitExpr_(const CallNode *op, std::ostream &os) {
   } else if (op->op.same_as(tl::pack_b16())) {
     os << "__pack_half2(" << this->PrintExpr(op->args[0]) << ", "
        << this->PrintExpr(op->args[1]) << ")";
-  } else if (op->op.same_as(tl::sync_grid())) {
-    this->need_cooperative_groups_ = true;
+  // } else if (op->op.same_as(tl::sync_grid_cg())) {
+  //   this->need_cooperative_groups_ = true;
+  //   this->PrintIndent();
+  //   this->stream << "cooperative_groups::this_grid().sync();\n";
+  } else if (op->op.same_as(tl::init_barrier_gpu())) {
+    ICHECK_GE(op->args.size(), 2);
     this->PrintIndent();
-    this->stream << "cooperative_groups::this_grid().sync();\n";
+    this->stream << "tl::init_barrier_gpu<" << this->PrintExpr(op->args[1])
+                 << ">(" << this->PrintExpr(op->args[0]) << ");\n";
+  } else if (op->op.same_as(tl::arrive_barrier_gpu())) {
+    this->PrintIndent();
+    this->stream << "tl::arrive_barrier_gpu(" << this->PrintExpr(op->args[0])
+                 << ");\n";
+  } else if (op->op.same_as(tl::wait_barrier_gpu())) {
+    this->PrintIndent();
+    this->stream << "tl::wait_barrier_gpu(" << this->PrintExpr(op->args[0])
+                 << ");\n";
+  } else if (op->op.same_as(tl::sync_barrier_gpu())) {
+    this->PrintIndent();
+    this->stream << "tl::sync_barrier_gpu(" << this->PrintExpr(op->args[0])
+                 << ");\n";
+  } else if (op->op.same_as(tl::sync_grid())) {
+    this->PrintIndent();
+    this->stream << "tl::sync_grid(" << this->PrintExpr(op->args[0]) << ");\n";
+  } else if (op->op.same_as(tl::atom_add())) {
+    std::string func_name = "tl::ptx_atom_add_" +
+                            op->args[2].as<StringImmNode>()->value + "_" +
+                            op->args[3].as<StringImmNode>()->value;
+    os << func_name << "(" << this->PrintExpr(op->args[0]) << ", "
+       << this->PrintExpr(op->args[1]) << ")";
+  // } else if (op->op.same_as(tl::get_clock())) {
+  //   os << "get_clock()";
   } else if (op->op.same_as(tl::loop_break())) {
     this->PrintIndent();
     this->stream << "break;\n";
+  } else if (op->op.same_as(tl::get_rank())) {
+    this->use_distributed_ = true;
+    os << "tl::get_rank()";
+  } else if (op->op.same_as(tl::get_num_ranks())) {
+    this->use_distributed_ = true;
+    os << "tl::get_num_ranks()";
+  } else if (op->op.same_as(tl::get_remote_base_ptr())) {
+    this->use_distributed_ = true;
+    std::string pe_str = this->PrintExpr(op->args[0]);
+    os << "tl::get_remote_base_ptr(" << pe_str << ")";
+  } else if (op->op.same_as(tl::get_uintptr_t())) {
+    os << "tl::get_uintptr_t(" << this->PrintExpr(op->args[0]) << ")";
+  } else if (op->op.same_as(tl::warp_reduce_sum())) {
+    os << "tl::warp_reduce_sum(" << this->PrintExpr(op->args[0]) << ")";
+  } else if (op->op.same_as(tl::warp_reduce_max())) {
+    os << "tl::warp_reduce_max(" << this->PrintExpr(op->args[0]) << ")";
+  } else if (op->op.same_as(tl::warp_reduce_min())) {
+    os << "tl::warp_reduce_min(" << this->PrintExpr(op->args[0]) << ")";
+  } else if (op->op.same_as(tl::warp_reduce_bitand())) {
+    os << "tl::warp_reduce_bitand(" << this->PrintExpr(op->args[0]) << ")";
+  } else if (op->op.same_as(tl::warp_reduce_bitor())) {
+    os << "tl::warp_reduce_bitor(" << this->PrintExpr(op->args[0]) << ")";
   } else if (op->op.same_as(builtin::tvm_fill_fragment())) {
     need_mma_h_ = true;
     ICHECK_EQ(op->args.size(), 6U);
@@ -2692,6 +2745,8 @@ void CodeGenTileLangCUDA::VisitExpr_(const CallNode *op, std::ostream &os) {
     os << "tl::warp_reduce_bitand(" << PrintExpr(op->args[0]) << ")";
   } else if (op->op.same_as(tl::warp_reduce_bitor())) {
     os << "tl::warp_reduce_bitor(" << PrintExpr(op->args[0]) << ")";
+  } else if (op->op.same_as(tl::sync_warp())) {
+    os << "__syncwarp()";
   } else if (op->op.same_as(tl::warp_any())) {
     os << "__any_sync(" << PrintExpr(op->args[1]) << ", "
        << PrintExpr(op->args[0]) << ")";

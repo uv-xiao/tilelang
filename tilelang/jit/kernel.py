@@ -26,6 +26,7 @@ from tilelang.profiler import Profiler, TensorSupplyType
 from tilelang.utils.target import determine_target
 from tilelang.contrib import nvcc as tl_nvcc
 from tilelang.transform import PassConfigKey
+import ctypes
 import logging
 import os
 
@@ -459,6 +460,21 @@ class JITKernel(Generic[_P, _T]):
             return self.adapter.get_host_source()
         assert self.artifact.host_mod is not None, "host_mod is not available"
         return str(self.artifact.host_mod)
+
+    def initialize(
+        self,
+        allocator: BaseAllocator,
+        stream: int = None,
+    ):
+        """Initialize base addr table for TileScale kernels."""
+
+        assert allocator.initialized(), "Allocator is not initialized"
+        result = self.adapter.lib.init_table(
+            ctypes.c_void_p(allocator.table.data_ptr()), allocator.table_size,
+            ctypes.c_void_p(stream) if stream is not None else ctypes.c_void_p(0))
+        if result != 0:
+            error_msg = self.adapter.lib.get_last_error().decode('utf-8')
+            raise RuntimeError(f"Initialization failed: {error_msg}")
 
     def run_once(self, func: Callable | None = None) -> None:
         return self.get_profiler().run_once(func)

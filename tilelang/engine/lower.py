@@ -1,8 +1,6 @@
 """The compiler for TL programs."""
 from __future__ import annotations
 
-from __future__ import annotations
-
 import os
 import os.path as osp
 from typing import Callable
@@ -88,7 +86,7 @@ def tilelang_callback_cuda_compile(code, target, pass_config=None):
         "-I" + cutlass_path,
     ]
     # Add NVSHMEM include path and library linking for distributed support
-    if env.USE_DISTRIBUTED:
+    if env.USE_DISTRIBUTED and env.USE_NVSHMEM:
         if env.NVSHMEM_INCLUDE_DIR and env.NVSHMEM_LIB_PATH:
             options.append("-I" + env.NVSHMEM_INCLUDE_DIR)
             options.append("-L" + env.NVSHMEM_LIB_PATH)
@@ -97,7 +95,7 @@ def tilelang_callback_cuda_compile(code, target, pass_config=None):
         else:
             raise ValueError(
                 "TILELANG_USE_DISTRIBUTED is enabled but NVSHMEM paths not found. "
-                "Install nvidia-nvshmem-cu12 via pip or set NVSHMEM_HOME/NVSHMEM_SRC."
+                "Install nvidia-nvshmem-cu12 via pip or set NVSHMEM_SRC."
             )
 
     # Merge extra device compiler flags from pass config, if provided

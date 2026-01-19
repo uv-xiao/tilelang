@@ -1,6 +1,3 @@
-// Copyright (c) Tile-AI Corporation.
-// Licensed under the MIT License.
-
 /*!
  * \file tl/op/distributed.cc
  * \brief Distributed intrinsics.

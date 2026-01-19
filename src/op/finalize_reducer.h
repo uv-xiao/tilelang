@@ -1,6 +1,3 @@
-// Copyright (c) Tile-AI Corporation.
-// Licensed under the MIT License.
-
 /*!
  * \file src/op/finalize_reducer.h
  * \brief Define finalize_reducer operator.

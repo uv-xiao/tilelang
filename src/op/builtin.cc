@@ -329,6 +329,11 @@ TIR_DEFINE_TL_BUILTIN(increase_descriptor_offset)
     .set_attr<TCallEffectKind>("TCallEffectKind",
                                Integer(CallEffectKind::kOpaque));
 
+TIR_DEFINE_TL_BUILTIN(atom_add)
+    .set_num_inputs(4)
+    .set_attr<TCallEffectKind>("TCallEffectKind", 
+                               Integer(CallEffectKind::kOpaque));
+
 TIR_DEFINE_TL_BUILTIN(atomicadd_elem_op)
     .set_num_inputs(3)
     .set_attr<TCallEffectKind>("TCallEffectKind",
@@ -383,15 +388,14 @@ TIR_DEFINE_TL_BUILTIN(__ldg).set_num_inputs(-1).set_attr<TCallEffectKind>(
 // TileScale Distributed Features
 // =====================================================================
 
-// warp_any: Check if any lane in the warp has a true value
+TIR_DEFINE_TL_BUILTIN(sync_warp).set_num_inputs(0).set_attr<TCallEffectKind>(
+    "TCallEffectKind", Integer(CallEffectKind::kOpaque));
+
 TIR_DEFINE_TL_BUILTIN(warp_any).set_num_inputs(2).set_attr<TCallEffectKind>(
     "TCallEffectKind", Integer(CallEffectKind::kPure));
 
-// warp_all: Check if all lanes in the warp have a true value
 TIR_DEFINE_TL_BUILTIN(warp_all).set_num_inputs(2).set_attr<TCallEffectKind>(
     "TCallEffectKind", Integer(CallEffectKind::kPure));
-
-// Note: ld and st are TileOperators defined in remote_copy.cc, not builtins
 
 } // namespace tl
 } // namespace tvm

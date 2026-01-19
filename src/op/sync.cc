@@ -35,30 +35,6 @@ PrimExpr BarrierBlocksOpNode::get_offset(const BufferLoadNode *load) const {
   }                                                                            \
   TVM_REGISTER_OP("tl." #OpName)                                               \
       .set_attr<TScriptPrinterName>("TScriptPrinterName", #OpName)
-
-TIR_DEFINE_TL_BUILTIN(init_barrier_gpu)
-    .set_num_inputs(2)
-    .set_attr<TCallEffectKind>("TCallEffectKind",
-                               Integer(CallEffectKind::kOpaque));
-
-TIR_DEFINE_TL_BUILTIN(arrive_barrier_gpu)
-    .set_num_inputs(1)
-    .set_attr<TCallEffectKind>("TCallEffectKind",
-                               Integer(CallEffectKind::kOpaque));
-
-TIR_DEFINE_TL_BUILTIN(wait_barrier_gpu)
-    .set_num_inputs(1)
-    .set_attr<TCallEffectKind>("TCallEffectKind",
-                               Integer(CallEffectKind::kOpaque));
-
-// Note: wait_eq is defined in distributed.cc
-// Note: sync_grid is defined in builtin.cc
-
-TIR_DEFINE_TL_BUILTIN(sync_barrier_gpu)
-    .set_num_inputs(1)
-    .set_attr<TCallEffectKind>("TCallEffectKind",
-                               Integer(CallEffectKind::kOpaque));
-
 BarrierBlocksOp::BarrierBlocksOp(Array<PrimExpr> args, Map<String, ObjectRef> annotations) {
   ObjectPtr<BarrierBlocksOpNode> node = tvm::ffi::make_object<BarrierBlocksOpNode>();
   node->local_bar_addr = args[0];
@@ -195,6 +171,18 @@ TIR_REGISTER_TL_TILE_OP(WaitOp, wait)
     .set_num_inputs(4)
     .set_attr<TCallEffectKind>("TCallEffectKind",
                                Integer(CallEffectKind::kOpaque));
+
+TIR_DEFINE_TL_BUILTIN(init_barrier_gpu).set_num_inputs(2).set_attr<TCallEffectKind>(
+    "TCallEffectKind", Integer(CallEffectKind::kOpaque));
+
+TIR_DEFINE_TL_BUILTIN(arrive_barrier_gpu).set_num_inputs(1).set_attr<TCallEffectKind>(
+    "TCallEffectKind", Integer(CallEffectKind::kOpaque));
+
+TIR_DEFINE_TL_BUILTIN(wait_barrier_gpu).set_num_inputs(1).set_attr<TCallEffectKind>(
+    "TCallEffectKind", Integer(CallEffectKind::kOpaque));
+
+TIR_DEFINE_TL_BUILTIN(sync_barrier_gpu).set_num_inputs(1).set_attr<TCallEffectKind>(
+    "TCallEffectKind", Integer(CallEffectKind::kOpaque));
 
 TIR_DEFINE_TL_BUILTIN(fence_cta).set_num_inputs(0).set_attr<TCallEffectKind>(
     "TCallEffectKind", Integer(CallEffectKind::kOpaque));

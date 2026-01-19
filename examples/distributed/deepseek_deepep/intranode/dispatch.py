@@ -111,7 +111,7 @@ def notify_dispatch_kernel(
                     for i in T.serial(token_start_idx + lane_id, token_end_idx, 32):
                         cnt += is_token_in_rank[i, dst_rank]
                     cnt = T.warp_reduce_sum(cnt)
-                    if T.elect_one_sync():
+                    if T.shuffle_elect(32):
                         channel_prefix_matrix[dst_rank, channel_id] = cnt
                 T.sync_threads()
 
@@ -318,7 +318,7 @@ def dispatch_kernel(
 
                 # send offset by `-value-1` e.g. 0->-1, 1->-2
                 # this is for distinguishing zero tokens
-                if send_warp_id_in_rank == 0 and T.elect_one_sync():
+                if send_warp_id_in_rank == 0 and T.shuffle_elect(32):
                     value = T.alloc_var('int32')
                     value = T.if_then_else(
                         responsible_channel > 0, channel_prefix_matrix[responsible_rank,
@@ -351,8 +351,8 @@ def dispatch_kernel(
                 cached_channel_tail_idx = 0
                 token_idx = T.alloc_var('int32')
                 token_idx = token_start_idx
-                with T.While(token_idx < token_end_idx):
-                    if T.elect_one_sync():
+                while token_idx < token_end_idx:
+                    if T.shuffle_elect(32):
                         T.wait_ge(
                             channel_head_idx[responsible_channel, rank],
                             num_max_send_tokens + cached_channel_tail_idx - num_recv_buffer_tokens,
@@ -364,8 +364,7 @@ def dispatch_kernel(
                     while chunk_token_idx < num_max_send_tokens and token_idx < token_end_idx:
                         # for the same token, the warp assigned to save `send_head` may be different from the warp
                         # assigned to send the following data
-                        if token_idx % num_warps_per_rank == send_warp_id_in_rank and T.elect_one_sync(
-                        ):
+                        if token_idx % num_warps_per_rank == send_warp_id_in_rank and T.shuffle_elect(32):
                             send_head[token_idx, responsible_rank] = T.if_then_else(
                                 is_token_in_rank[token_idx, responsible_rank],
                                 cached_channel_tail_idx, -1)
@@ -373,7 +372,7 @@ def dispatch_kernel(
                         # skip if not selected
                         if not is_token_in_rank[token_idx, responsible_rank]:
                             token_idx += 1
-                            T.loop_continue()
+                            continue
 
                         # selected, get an empty slot
                         dst_slot_idx = T.alloc_var('int32')
@@ -392,7 +391,7 @@ def dispatch_kernel(
                                 enable_aggressive_vectorize=True)
 
                             # 2. copy src idx
-                            if T.elect_one_sync():
+                            if T.shuffle_elect(32):
                                 T.st(
                                     channel_src_idx_buffers[responsible_channel, rank,
                                                             dst_slot_idx],
@@ -434,7 +433,7 @@ def dispatch_kernel(
                     # move tail index
                     # here all warps should share the same new tail
                     T.sync_threads(responsible_rank, num_threads_per_rank)
-                    if send_warp_id_in_rank == 0 and T.elect_one_sync():
+                    if send_warp_id_in_rank == 0 and T.shuffle_elect(32):
                         T.st(
                             channel_tail_idx[responsible_channel, rank],
                             cached_channel_tail_idx,
@@ -453,7 +452,7 @@ def dispatch_kernel(
                 # receive channel offset
                 total_offset = T.alloc_var('int32')
                 num_tokens_to_recv = T.alloc_var('int32')
-                if T.elect_one_sync():
+                if T.shuffle_elect(32):
                     T.wait_ne(channel_start_offset[responsible_channel, responsible_rank], 0)
                     T.ld(
                         channel_start_offset[responsible_channel, responsible_rank],
@@ -480,8 +479,8 @@ def dispatch_kernel(
                 cached_channel_head_idx = 0
                 cached_channel_tail_idx = T.alloc_var('int32')
                 cached_channel_tail_idx = 0
-                with T.While(num_tokens_to_recv > 0):
-                    with T.While(recv_thread_id_in_rank == 0):
+                while num_tokens_to_recv > 0:
+                    while recv_thread_id_in_rank == 0:
                         T.ld(
                             channel_tail_idx[responsible_channel, responsible_rank],
                             cached_channel_tail_idx,
@@ -491,7 +490,7 @@ def dispatch_kernel(
                         # read to copy
                         if cached_channel_head_idx != cached_channel_tail_idx:
                             shared_channel_tail_idx[responsible_rank] = cached_channel_tail_idx
-                            T.loop_break()
+                            break
 
                     # sync queue tail
                     T.sync_threads(responsible_rank, num_threads_per_rank)
@@ -549,7 +548,7 @@ def dispatch_kernel(
                     cached_channel_head_idx += num_cur_recv_tokens
                     total_offset += num_cur_recv_tokens
                     T.sync_threads(responsible_rank, num_threads_per_rank)
-                    if recv_warp_id_in_rank == num_warps_per_rank - 1 and T.elect_one_sync():
+                    if recv_warp_id_in_rank == num_warps_per_rank - 1 and T.shuffle_elect(32):
                         T.st(
                             channel_head_idx[responsible_channel, responsible_rank],
                             cached_channel_head_idx,
@@ -624,7 +623,7 @@ def cached_dispatch_kernel(
 
                 # send offset by `-value-1` e.g. 0->-1, 1->-2
                 # this is for distinguishing zero tokens
-                if send_warp_id_in_rank == 0 and T.elect_one_sync():
+                if send_warp_id_in_rank == 0 and T.shuffle_elect(32):
                     value = T.alloc_var('int32')
                     value = T.if_then_else(
                         responsible_channel > 0, channel_prefix_matrix[responsible_rank,
@@ -657,8 +656,8 @@ def cached_dispatch_kernel(
                 cached_channel_tail_idx = 0
                 token_idx = T.alloc_var('int32')
                 token_idx = token_start_idx
-                with T.While(token_idx < token_end_idx):
-                    if T.elect_one_sync():
+                while token_idx < token_end_idx:
+                    if T.shuffle_elect(32):
                         T.wait_ge(
                             channel_head_idx[responsible_channel, rank],
                             num_max_send_tokens + cached_channel_tail_idx - num_recv_buffer_tokens,
@@ -670,8 +669,7 @@ def cached_dispatch_kernel(
                     while chunk_token_idx < num_max_send_tokens and token_idx < token_end_idx:
                         # for the same token, the warp assigned to save `send_head` may be different from the warp
                         # assigned to send the following data
-                        if token_idx % num_warps_per_rank == send_warp_id_in_rank and T.elect_one_sync(
-                        ):
+                        if token_idx % num_warps_per_rank == send_warp_id_in_rank and T.shuffle_elect(32):
                             send_head[token_idx, responsible_rank] = T.if_then_else(
                                 is_token_in_rank[token_idx, responsible_rank],
                                 cached_channel_tail_idx, -1)
@@ -679,7 +677,7 @@ def cached_dispatch_kernel(
                         # skip if not selected
                         if not is_token_in_rank[token_idx, responsible_rank]:
                             token_idx += 1
-                            T.loop_continue()
+                            continue
 
                         # selected, get an empty slot
                         dst_slot_idx = T.alloc_var('int32')
@@ -698,7 +696,7 @@ def cached_dispatch_kernel(
                                 enable_aggressive_vectorize=True)
 
                             # 2. copy src idx
-                            if T.elect_one_sync():
+                            if T.shuffle_elect(32):
                                 T.st(
                                     channel_src_idx_buffers[responsible_channel, rank,
                                                             dst_slot_idx],
@@ -713,7 +711,7 @@ def cached_dispatch_kernel(
                     # move tail index
                     # here all warps should share the same new tail
                     T.sync_threads(responsible_rank, num_threads_per_rank)
-                    if send_warp_id_in_rank == 0 and T.elect_one_sync():
+                    if send_warp_id_in_rank == 0 and T.shuffle_elect(32):
                         T.st(
                             channel_tail_idx[responsible_channel, rank],
                             cached_channel_tail_idx,
@@ -732,7 +730,7 @@ def cached_dispatch_kernel(
                 # receive channel offset
                 total_offset = T.alloc_var('int32')
                 num_tokens_to_recv = T.alloc_var('int32')
-                if T.elect_one_sync():
+                if T.shuffle_elect(32):
                     T.wait_ne(channel_start_offset[responsible_channel, responsible_rank], 0)
                     T.ld(
                         channel_start_offset[responsible_channel, responsible_rank],
@@ -759,8 +757,8 @@ def cached_dispatch_kernel(
                 cached_channel_head_idx = 0
                 cached_channel_tail_idx = T.alloc_var('int32')
                 cached_channel_tail_idx = 0
-                with T.While(num_tokens_to_recv > 0):
-                    with T.While(recv_thread_id_in_rank == 0):
+                while num_tokens_to_recv > 0:
+                    while recv_thread_id_in_rank == 0:
                         T.ld(
                             channel_tail_idx[responsible_channel, responsible_rank],
                             cached_channel_tail_idx,
@@ -770,7 +768,7 @@ def cached_dispatch_kernel(
                         # read to copy
                         if cached_channel_head_idx != cached_channel_tail_idx:
                             shared_channel_tail_idx[responsible_rank] = cached_channel_tail_idx
-                            T.loop_break()
+                            break
 
                     # sync queue tail
                     T.sync_threads(responsible_rank, num_threads_per_rank)
@@ -811,7 +809,7 @@ def cached_dispatch_kernel(
                     cached_channel_head_idx += num_cur_recv_tokens
                     total_offset += num_cur_recv_tokens
                     T.sync_threads(responsible_rank, num_threads_per_rank)
-                    if recv_warp_id_in_rank == num_warps_per_rank - 1 and T.elect_one_sync():
+                    if recv_warp_id_in_rank == num_warps_per_rank - 1 and T.shuffle_elect(32):
                         T.st(
                             channel_head_idx[responsible_channel, responsible_rank],
                             cached_channel_head_idx,

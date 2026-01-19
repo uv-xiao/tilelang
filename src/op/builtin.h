@@ -544,6 +544,14 @@ TVM_DLL const Op &tcgen05_mma_arrive();
 TVM_DLL const Op &increase_descriptor_offset();
 
 /*!
+ * \brief tilelang intrinsic for atomic add that returns the original value.
+ *
+ *  This op is used to represent an atomic add operation that returns the
+ * original value before addition in tilelang.
+ */
+ TVM_DLL const Op &atom_add();
+
+/*!
  * \brief tilelang intrinsic for element-wise atomic addition.
  *
  *  This op is used to represent an element-wise atomic add operation in
@@ -564,6 +572,7 @@ TVM_DLL const Op &device_assert();
  *  This op is used to represent an assert on device with additional message.
  */
 TVM_DLL const Op &device_assert_with_msg();
+
 
 /*!
  * \brief tilelang intrinsic for warp reduction sum.
@@ -607,6 +616,13 @@ TVM_DLL const Op &warp_reduce_bitor();
  *  index expression.
  */
 TVM_DLL const Op &__ldg();
+
+/*!
+ * \brief Synchronize all threads in a warp
+ *
+ * sync_warp()
+ */
+TVM_DLL const Op &sync_warp();
 
 /*!
  * \brief Check if any lane in the warp has a true value

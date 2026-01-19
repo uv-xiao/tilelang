@@ -49,9 +49,7 @@ def cached_notify_combine_kernel(num_ranks, num_sms):
                 token_end_idx = T.min(token_start_idx + tokens_per_channel, num_recv_tokens)
 
                 last_head = T.alloc_var('int32', init=2**25)  # a heuristic large number
-                # todo: tilelang doesn't support reverse loop, we simulate this
-                for i in T.serial(0, token_end_idx - token_start_idx, 32):
-                    token_idx_tail = token_end_idx - i - 1
+                for token_idx_tail in T.serial(token_end_idx - 1, token_start_idx - 1, -32):
                     token_idx = token_idx_tail - lane_id
                     current_head = T.alloc_var('int32')
                     if token_idx >= token_start_idx:
@@ -173,10 +171,10 @@ def combine_kernel(
                 current_channel_tail_idx = 0
                 token_idx = T.alloc_var('int32')
                 token_idx = token_start_idx
-                with T.While(token_idx < token_end_idx):
+                while token_idx < token_end_idx:
                     # Check destination queue emptiness, or wait a buffer to be released (rare cases)
                     num_round_tokens = T.min(num_max_send_tokens, token_end_idx - token_idx)
-                    if T.elect_one_sync():
+                    if T.shuffle_elect(32):
                         T.wait_ge(
                             channel_head_idx[responsible_channel, rank],
                             current_channel_tail_idx + num_round_tokens - num_recv_buffer_tokens,
@@ -201,7 +199,7 @@ def combine_kernel(
 
                         # 2. send src idx
                         idx = T.alloc_var('int32')
-                        if T.elect_one_sync():
+                        if T.shuffle_elect(32):
                             T.ld(src_idx[token_idx + i], idx, nc=True)
                             T.st(
                                 channel_src_idx_buffers[responsible_channel, rank, dst_slot_idx],
@@ -223,7 +221,7 @@ def combine_kernel(
 
                     # move tail index
                     T.sync_threads(send_rank_id, threads_per_rank)
-                    if send_warp_id_in_rank == 0 and T.elect_one_sync():
+                    if T.shuffle_elect(96):
                         T.st(
                             channel_tail_idx[responsible_channel, rank],
                             current_channel_tail_idx,
@@ -248,14 +246,14 @@ def combine_kernel(
                 if tx < 32:  # one warp for moving the queue head
                     last_head = T.alloc_var('int32')
                     last_head = 0
-                    with T.While(lane_id < num_ranks):
+                    while lane_id < num_ranks:
                         # check retired
                         retired = T.alloc_var('bool')
                         retired = True
                         for i in T.serial(1, warps):
                             retired = retired and warp_retired[i]
                         if retired:
-                            T.loop_break()
+                            break
 
                         # Update queue tail
                         new_tail = T.alloc_var('int32')
@@ -304,13 +302,13 @@ def combine_kernel(
 
                         condvar = T.alloc_var('int32')
                         T.ld(shared_channel_tail_idx[lane_id], condvar, sem="acquire", scope="cta")
-                        with T.While(T.warp_any(condvar <= expected_head and expected_head >= 0)):
+                        while T.warp_any(condvar <= expected_head and expected_head >= 0):
                             T.ld(
                                 shared_channel_tail_idx[lane_id],
                                 condvar,
                                 sem="acquire",
                                 scope="cta")
-                            T.loop_continue()
+                            continue
                         # can we simplify this ?
                         T.sync_warp()
 
@@ -373,7 +371,7 @@ def combine_kernel(
 
                     # Retired
                     T.sync_warp()
-                    if T.elect_one_sync():
+                    if T.shuffle_elect(32):
                         warp_retired[warp_id] = True
 
     return combine_main

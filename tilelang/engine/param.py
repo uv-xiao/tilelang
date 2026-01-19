@@ -1,8 +1,6 @@
 """The profiler and convert to torch utils"""
 from __future__ import annotations
 
-from __future__ import annotations
-
 from dataclasses import dataclass
 import torch
 from tilelang import tvm as tvm

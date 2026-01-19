@@ -1,8 +1,6 @@
 """PrimFunc Wrapper and Block information Analaysis"""
 from __future__ import annotations
 
-from __future__ import annotations
-
 import tvm
 from tvm import tir
 from tvm.tir import IterVar, PrimFunc

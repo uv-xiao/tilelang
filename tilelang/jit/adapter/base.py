@@ -1,8 +1,6 @@
 """The profiler and convert to torch utils"""
 from __future__ import annotations
 
-from __future__ import annotations
-
 from abc import ABC, abstractmethod
 from typing import Any, Callable
 from tilelang.engine.param import KernelParam

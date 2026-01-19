@@ -1,6 +1,3 @@
-// Copyright (c) Tile-AI Corporation.
-// Licensed under the MIT License.
-
 /*!
  * \file tl/op/remote_copy.h
  * \brief Remote copy operators for distributed computing.

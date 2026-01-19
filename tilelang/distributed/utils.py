@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import torch  # Must import torch first before tilescale_ext
+import torch
 import torch.distributed as dist
 import datetime
 import os
@@ -19,7 +19,6 @@ else:
     from cuda import cuda, cudart
 
 import ctypes
-# Import tilescale_ext after torch to ensure proper library loading order
 from tilescale_ext import _create_tensor, _create_ipc_handle, _sync_ipc_handles, create_host_device_tensor
 import functools
 from functools import lru_cache
@@ -272,6 +271,7 @@ def supports_p2p_native_atomic():
 
 
 def set_signal(signal_tensor: torch.Tensor, signal: int, stream: torch.cuda.Stream | None = None):
+    # host side
     stream = stream or torch.cuda.current_stream()
     if signal_tensor.dtype in (torch.int32, torch.uint32):
         (err,) = cuda.cuStreamWriteValue32(
@@ -289,6 +289,7 @@ def wait_eq(signal_tensor: torch.Tensor,
             signal: int,
             stream: torch.cuda.Stream | None = None,
             require_i64=False):
+    # host side
     stream = stream or torch.cuda.current_stream()
     if signal_tensor.dtype == torch.int32:
         (err,) = cuda.cuStreamWaitValue32(

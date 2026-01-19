@@ -809,11 +809,6 @@ def increase_descriptor_offset(descriptor: PrimExpr, offset: PrimExpr) -> PrimEx
     return evaluate(tir.call_intrin("handle", tir.op.Op.get("tl.increase_descriptor_offset"), descriptor, offset))
 
 
-def loop_break():
-    """Break out of the innermost loop."""
-    return tir.call_intrin("handle", tir.op.Op.get("tl.loop_break"))
-
-
 def cp_async_barrier_noinc(barrier_id: int | PrimExpr | tir.Call):
     """Perform a ptx async copy barrier using cp.async.mbarrier.arrive.noinc."""
     return tir.call_intrin("handle", tir.op.Op.get("tl.ptx_cp_async_barrier_noinc"), barrier_id)
@@ -934,6 +929,92 @@ def ptx_mma_sm70(
 # =====================================================================
 
 
+# Device-level barrier synchronization
+
+
+def alloc_barrier_gpu():
+    """Allocate a barrier for GPU-level synchronization.
+
+    Returns:
+        T.Buffer: A single-element TVM buffer object allocated as a barrier
+    """
+    return T.alloc_buffer([1], "uint32", scope="global")
+
+
+def init_barrier_gpu(barrier: PrimExpr, expected: int):
+    """Initialize a barrier for GPU-level synchronization.
+
+    Args:
+        barrier: The barrier to initialize
+        expected (int): The number of threads that need to arrive at the barrier.
+    """
+    return tir.call_intrin("handle", tir.op.Op.get("tl.init_barrier_gpu"), address_of(barrier),
+                           expected)
+
+
+def arrive_barrier_gpu(barrier: PrimExpr):
+    """Arrive at a barrier for GPU-level synchronization.
+
+    Args:
+        barrier: The barrier to arrive at
+    """
+    return tir.call_intrin("handle", tir.op.Op.get("tl.arrive_barrier_gpu"), address_of(barrier))
+
+
+def wait_barrier_gpu(barrier: PrimExpr):
+    """Wait at a barrier for GPU-level synchronization.
+
+    Args:
+        barrier: The barrier to wait at
+    """
+    return tir.call_intrin("handle", tir.op.Op.get("tl.wait_barrier_gpu"), address_of(barrier))
+
+
+def sync_barrier_gpu(barrier: PrimExpr):
+    """Synchronize at a barrier for GPU-level synchronization.
+
+    Args:
+        barrier: The barrier to synchronize at
+    """
+    return tir.call_intrin("handle", tir.op.Op.get("tl.sync_barrier_gpu"), address_of(barrier))
+
+
+def barrier_blocks(barrier: PrimExpr):
+    """Barrier all blocks at a system-level barrier.
+    Compare to sync_blocks, barrier_blocks have an extra system-level fence effect
+
+    Args:
+        barrier: The barrier to synchronize at, should be [num_ranks] of int32
+    """
+    return tir.call_intrin("handle", tir.op.Op.get("tl.tileop.barrier_blocks"), address_of(barrier),
+                           1)  # whether need fence
+
+
+def sync_blocks(barrier: PrimExpr):
+    """Synchronize all blocks at a system-level barrier.
+
+    Args:
+        barrier: The barrier to synchronize at, should be [num_ranks] of int32
+    """
+    return tir.call_intrin("handle", tir.op.Op.get("tl.tileop.barrier_blocks"), address_of(barrier),
+                           0)  # whether need fence
+
+
+def fence_cta():
+    """Create a memory fence at the block level (visible to all threads in the current block)."""
+    return tir.call_intrin("handle", tir.op.Op.get("tl.fence_cta"))
+
+
+def fence_gpu():
+    """Synchronize all threads at the GPU level (visible to all blocks on the current device)."""
+    return tir.call_intrin("handle", tir.op.Op.get("tl.fence_gpu"))
+
+
+def fence_sys():
+    """Synchronize all threads at the system level (visible in a node)."""
+    return tir.call_intrin("handle", tir.op.Op.get("tl.fence_sys"))
+
+
 def ld(
     src: PrimExpr,
     value: PrimExpr,
@@ -966,7 +1047,7 @@ def ld(
     sem = {"weak": 0, "volatile": 1, "acquire": 2, "release": 3, "relaxed": 4}[sem]
     na = 1 if na else 0
     nc = 1 if nc else 0
-    return tir.call_intrin("handle", tir.op.Op.get("tl.ld"), address_of(src), value, sem, scope, na,
+    return tir.call_intrin("handle", tir.op.Op.get("tl.tileop.ld"), address_of(src), value, sem, scope, na,
                            nc, src_pe)
 
 
@@ -1000,8 +1081,13 @@ def st(
     scope = {"cta": 0, "gpu": 1, "sys": 2}[scope]
     sem = {"weak": 0, "volatile": 1, "acquire": 2, "release": 3, "relaxed": 4}[sem]
     na = 1 if na else 0
-    return tir.call_intrin("handle", tir.op.Op.get("tl.st"), address_of(dst), value, sem, scope, na,
+    return tir.call_intrin("handle", tir.op.Op.get("tl.tileop.st"), address_of(dst), value, sem, scope, na,
                            dst_pe)
+
+
+def sync_warp():
+    """Synchronize all threads in a warp."""
+    return tir.call_intrin("handle", tir.op.Op.get("tl.sync_warp"))
 
 
 def warp_any(value, mask=-1):
@@ -1028,3 +1114,18 @@ def warp_all(value, mask=-1):
         result (int): The result of the vote.
     """
     return tir.call_intrin("int32", tir.op.Op.get("tl.warp_all"), value, mask)
+
+
+def atom_add(target: PrimExpr, value: PrimExpr, scope: str = "gpu", sem: str = "relaxed"):
+    """Perform an atomic addtion to a value with specified scope and semantic.
+    Args:
+        target: The target to add to.
+        value: The value to add.
+        scope: The memory scope.
+        sem: The memory semantic.
+    """
+    assert scope in ["gpu", "sys"], "Scope must be one of 'gpu', or 'sys'."
+    assert sem in ["relaxed", "acquire", "release", "acq_rel"
+                  ], "Semantic must be one of 'relaxed', 'acquire', 'release', or 'acq_rel'."
+    return tir.call_intrin("uint32", tir.op.Op.get("tl.atom_add"), address_of(target), value, sem,
+                           scope)

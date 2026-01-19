@@ -15,7 +15,6 @@ with the appropriate memory scope.
 """
 from __future__ import annotations
 
-from __future__ import annotations
 from typing import TypeVar, overload, Literal
 
 # Python 3.9 compatibility for advanced typing features (PEP 646)
