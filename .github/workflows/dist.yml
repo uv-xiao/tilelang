@@ -37,9 +37,10 @@ jobs:
     strategy:
       matrix:
         target:
+          # NOTE(wt): Temporarily disable ARM and MacOS, as NVSHMEM only supports x86. (?)
           - { runner: ubuntu-latest, toolkit: "CUDA-12.8" }
-          - { runner: ubuntu-24.04-arm, toolkit: "CUDA-12.8" }
-          - { runner: macos-latest, toolkit: "Metal" }
+          # - { runner: ubuntu-24.04-arm, toolkit: "CUDA-12.8" }
+          # - { runner: macos-latest, toolkit: "Metal" }
         python-version:
           # TVM is built with Python 3.8 Limited API, it should work with all Python >= 3.8.
           - "3.9"
