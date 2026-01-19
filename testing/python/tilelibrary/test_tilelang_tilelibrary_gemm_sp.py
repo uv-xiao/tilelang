@@ -221,6 +221,9 @@ def run_gemm_sp_sm90(
     K,
     in_dtype,
     out_dtype,
+    accum_dtype,
+    block_M,
+    block_N,
     block_K,
     num_stages,
     num_threads,
@@ -272,92 +275,6 @@ def run_gemm_sp_sm80(
     num_threads,
     trans_A,
     trans_B,
-):
-    kernel = matmul_sp_sm80(
-        M,
-        N,
-        K,
-        block_M,
-        block_N,
-        block_K,
-        in_dtype,
-        out_dtype,
-        accum_dtype,
-        num_stages,
-        num_threads,
-        trans_A,
-        trans_B,
-    )
-    run_gemm_sp(
-        kernel,
-        M,
-        N,
-        K,
-        in_dtype,
-        out_dtype,
-        block_K,
-        trans_A,
-        trans_B,
-    )
-
-
-def run_gemm_sp_sm90(
-    M,
-    N,
-    K,
-    in_dtype,
-    out_dtype,
-    accum_dtype,
-    block_M,
-    block_N,
-    block_K,
-    num_stages,
-    num_threads,
-    trans_A=False,
-    trans_B=False,
-):
-    kernel = matmul_sp_sm90(
-        M,
-        N,
-        K,
-        block_M,
-        block_N,
-        block_K,
-        in_dtype,
-        out_dtype,
-        accum_dtype,
-        num_stages,
-        num_threads,
-        trans_A,
-        trans_B,
-    )
-    run_gemm_sp(
-        kernel,
-        M,
-        N,
-        K,
-        in_dtype,
-        out_dtype,
-        block_K,
-        trans_A,
-        trans_B,
-    )
-
-
-def run_gemm_sp_sm80(
-    M,
-    N,
-    K,
-    in_dtype,
-    out_dtype,
-    accum_dtype,
-    block_M,
-    block_N,
-    block_K,
-    num_stages,
-    num_threads,
-    trans_A=False,
-    trans_B=False,
 ):
     kernel = matmul_sp_sm80(
         M,

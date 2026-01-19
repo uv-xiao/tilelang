@@ -1,4 +1,5 @@
 """The cache utils with class and database persistence - Init file"""
+
 from __future__ import annotations
 
 import logging

@@ -5,7 +5,8 @@ import tilelang.language as T
 # add decorator @tilelang.jit if you want to return a torch function
 # @tilelang.jit
 @tilelang.jit(
-    out_idx=[2], pass_configs={
+    out_idx=[2],
+    pass_configs={
         tilelang.PassConfigKey.TL_DISABLE_TMA_LOWER: True,
     },
 )

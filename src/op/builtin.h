@@ -549,7 +549,7 @@ TVM_DLL const Op &increase_descriptor_offset();
  *  This op is used to represent an atomic add operation that returns the
  * original value before addition in tilelang.
  */
- TVM_DLL const Op &atom_add();
+TVM_DLL const Op &atom_add();
 
 /*!
  * \brief tilelang intrinsic for element-wise atomic addition.
@@ -572,7 +572,6 @@ TVM_DLL const Op &device_assert();
  *  This op is used to represent an assert on device with additional message.
  */
 TVM_DLL const Op &device_assert_with_msg();
-
 
 /*!
  * \brief tilelang intrinsic for warp reduction sum.

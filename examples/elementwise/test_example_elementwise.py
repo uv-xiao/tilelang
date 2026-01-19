@@ -1,6 +1,5 @@
 import tilelang.testing
 import example_elementwise_add
-import example_elementwise_add_tma_1d
 
 
 def test_example_elementwise_add():

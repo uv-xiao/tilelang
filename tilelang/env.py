@@ -315,6 +315,7 @@ class Environment:
         if include_dir is None:
             try:
                 import nvidia.nvshmem
+
                 nvshmem_pip_home = nvidia.nvshmem.__path__[0]
                 pip_include = os.path.join(nvshmem_pip_home, "include")
                 pip_lib = os.path.join(nvshmem_pip_home, "lib")

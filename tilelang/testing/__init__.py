@@ -23,14 +23,14 @@ __all__ = [
 ] + [f"requires_cuda_compute_version_{op}" for op in ("ge", "gt", "le", "lt", "eq")]
 
 __all__ = [
-    'requires_package',
-    'requires_cuda',
-    'requires_metal',
-    'requires_rocm',
-    'requires_llvm',
-    'main',
-    'requires_cuda_compute_version',
-] + [f'requires_cuda_compute_version_{op}' for op in ('ge', 'gt', 'le', 'lt', 'eq')]
+    "requires_package",
+    "requires_cuda",
+    "requires_metal",
+    "requires_rocm",
+    "requires_llvm",
+    "main",
+    "requires_cuda_compute_version",
+] + [f"requires_cuda_compute_version_{op}" for op in ("ge", "gt", "le", "lt", "eq")]
 
 
 # pytest.main() wrapper to allow running single test file

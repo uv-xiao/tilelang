@@ -10,11 +10,13 @@ import warnings
 import contextlib
 from tilelang.env import CUDA_HOME, CUTLASS_INCLUDE_DIR, TILELANG_TEMPLATE_PATH
 
+
 def _get_nvshmem_include_path():
     """Get NVSHMEM include path from pip-installed nvidia-nvshmem-cu12 or environment."""
     # Try pip-installed nvidia-nvshmem-cu12
     try:
         import nvidia.nvshmem
+
         nvshmem_path = nvidia.nvshmem.__path__[0]
         include_path = os.path.join(nvshmem_path, "include")
         if os.path.exists(include_path):
@@ -28,6 +30,8 @@ def _get_nvshmem_include_path():
         if os.path.exists(include_path):
             return include_path
     return None
+
+
 import shutil
 import tempfile
 import tvm_ffi

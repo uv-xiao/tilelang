@@ -8,6 +8,7 @@ import argparse
 
 tilelang.disable_cache()
 
+
 @tilelang.jit(
     out_idx=[6],
     pass_configs={

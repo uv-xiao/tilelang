@@ -1,4 +1,5 @@
 """Wrapping Layouts."""
+
 from __future__ import annotations
 
 # pylint: disable=invalid-name, unsupported-binary-operation
@@ -132,7 +133,7 @@ class Layout(Node):
         """
         return _ffi_api.Layout_inverse(self)
 
-    def is_equal(self, other: "Layout") -> bool:
+    def is_equal(self, other: Layout) -> bool:
         """
         Check if the current layout is equal to another layout.
 

@@ -70,14 +70,16 @@ if hasattr(_libcudart, "cudaSetDevice"):
 class BaseAllocator:
     func: callable | None = None
 
-    def __init__(self,
-                 size: int,
-                 device: str | torch.device | int | None = None,
-                 is_distributed: bool = False,
-                 local_rank: int | None = None,
-                 num_local_ranks: int | None = None,
-                 group: dist.ProcessGroup | None = None,
-                 align: int = 256) -> None:
+    def __init__(
+        self,
+        size: int,
+        device: str | torch.device | int | None = None,
+        is_distributed: bool = False,
+        local_rank: int | None = None,
+        num_local_ranks: int | None = None,
+        group: dist.ProcessGroup | None = None,
+        align: int = 256,
+    ) -> None:
         if size <= 0:
             raise ValueError("size must be > 0")
         self.size = int(size)
@@ -101,8 +103,7 @@ class BaseAllocator:
             assert self._group is not None, "group must be provided when is_distributed is True"
             assert self._local_rank is not None, "local_rank must be provided when is_distributed is True"
             assert self._num_local_ranks is not None, "num_local_ranks must be provided when is_distributed is True"
-            assert self._group.size(
-            ) == self._num_local_ranks, "group.size() must be equal to num_local_ranks"
+            assert self._group.size() == self._num_local_ranks, "group.size() must be equal to num_local_ranks"
 
         self._alloc()
         if self._is_distributed:
@@ -118,8 +119,7 @@ class BaseAllocator:
         if self._device is not None:
             rc = _libcudart.cudaSetDevice(int(self._device))
             if rc != 0:
-                raise RuntimeError(
-                    f"cudaSetDevice failed: {rc} {_libcudart.cudaGetErrorString(rc).decode()}")
+                raise RuntimeError(f"cudaSetDevice failed: {rc} {_libcudart.cudaGetErrorString(rc).decode()}")
         rc = _libcudart.cudaMalloc(ctypes.byref(self._base_ptr), ctypes.c_size_t(self.size))
         if rc != 0:
             msg = _libcudart.cudaGetErrorString(rc)
@@ -148,9 +148,8 @@ class BaseAllocator:
         ] * self._group.size()
         local_ipc_handle = _create_ipc_handle(self._base_ptr.value)
         dist.all_gather_object(ipc_handles, local_ipc_handle, self._group)
-        buffer_ptrs = torch.empty(self._group.size(), dtype=torch.uint64, device='cuda')
-        _sync_ipc_handles(self._local_rank, device_ids,
-                          ctypes.c_void_p(buffer_ptrs.data_ptr()).value, ipc_handles, None)
+        buffer_ptrs = torch.empty(self._group.size(), dtype=torch.uint64, device="cuda")
+        _sync_ipc_handles(self._local_rank, device_ids, ctypes.c_void_p(buffer_ptrs.data_ptr()).value, ipc_handles, None)
         buffer_ptrs[self._local_rank] = self._base_ptr.value
         self._buffer_ptrs = buffer_ptrs
         self._table_size = 2 + self._group.size()
@@ -162,12 +161,9 @@ class BaseAllocator:
     def initialized(self) -> bool:
         return self._initialized
 
-    def _allocate_tensor(self,
-                         shape: tuple[int, ...],
-                         dtype: torch.dtype,
-                         return_peers=False,
-                         take_ownership: bool = False) -> torch.Tensor:
-
+    def _allocate_tensor(
+        self, shape: tuple[int, ...], dtype: torch.dtype, return_peers=False, take_ownership: bool = False
+    ) -> torch.Tensor:
         numel = _prod_shape(shape)
         itemsize = _element_size_bytes(dtype)
         bytes_needed = numel * itemsize
@@ -177,9 +173,11 @@ class BaseAllocator:
         current_offset = int(self._ptr.value) - int(self._base_ptr.value)
         if current_offset + bytes_alloc > self.size:
             bytes_available = self.size - current_offset
-            raise MemoryError(f"Allocation failed: Requesting {bytes_alloc} bytes, but only "
-                              f"{bytes_available} bytes are available in the pre-allocated buffer "
-                              f"(total size: {self.size} bytes).")
+            raise MemoryError(
+                f"Allocation failed: Requesting {bytes_alloc} bytes, but only "
+                f"{bytes_available} bytes are available in the pre-allocated buffer "
+                f"(total size: {self.size} bytes)."
+            )
 
         if not isinstance(self._ptr, ctypes.c_void_p):
             raise TypeError("self._ptr must be ctypes.c_void_p")
@@ -233,16 +231,14 @@ class BaseAllocator:
             self._free()
 
 
-def get_allocator(size: int = 2**30,
-                  device: str = "cuda",
-                  is_distributed: bool = True,
-                  local_rank: int = 0,
-                  num_local_ranks: int = 1,
-                  group: dist.ProcessGroup | None = None) -> BaseAllocator:
+def get_allocator(
+    size: int = 2**30,
+    device: str = "cuda",
+    is_distributed: bool = True,
+    local_rank: int = 0,
+    num_local_ranks: int = 1,
+    group: dist.ProcessGroup | None = None,
+) -> BaseAllocator:
     return BaseAllocator(
-        size,
-        device=device,
-        is_distributed=is_distributed,
-        local_rank=local_rank,
-        num_local_ranks=num_local_ranks,
-        group=group)
+        size, device=device, is_distributed=is_distributed, local_rank=local_rank, num_local_ranks=num_local_ranks, group=group
+    )

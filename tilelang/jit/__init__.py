@@ -3,6 +3,7 @@ This module provides an auto-tuning infrastructure for TileLang (tl) programs.
 It includes functionality to JIT-compile TileLang programs into a runnable
 kernel adapter using TVM.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -97,7 +98,7 @@ def compile(
     target = Target(determine_target(target))
 
     if is_metal_target(target):
-        assert execution_backend == 'torch', 'Currently metal target only support `tl.jit(execution_backend="torch")`'
+        assert execution_backend == "torch", 'Currently metal target only support `tl.jit(execution_backend="torch")`'
 
     if hasattr(func, "out_idx_override"):
         if func.out_idx_override is not None and out_idx is not None:

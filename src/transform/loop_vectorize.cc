@@ -157,7 +157,8 @@ private:
         if (func_name_node) {
           std::string func_name = func_name_node->value;
           // Check for tl::ld<...> or tl::st<...> patterns
-          if (func_name.rfind("tl::ld<", 0) == 0 || func_name.rfind("tl::st<", 0) == 0) {
+          if (func_name.rfind("tl::ld<", 0) == 0 ||
+              func_name.rfind("tl::st<", 0) == 0) {
             bool can_vectorize = true;
 
             // Check source address (args[1]) for vectorizable pattern

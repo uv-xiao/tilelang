@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from tilelang import tvm as tvm
-from tilelang.language import ptx_arrive_barrier, evaluate, address_of
+from tilelang.language import ptx_arrive_barrier, evaluate, address_of, alloc_buffer
 from tilelang.language.kernel import get_thread_bindings, get_block_extents
 from tilelang.utils.target import check_hip_availability
 from tvm import DataType, tir
@@ -938,7 +938,7 @@ def alloc_barrier_gpu():
     Returns:
         T.Buffer: A single-element TVM buffer object allocated as a barrier
     """
-    return T.alloc_buffer([1], "uint32", scope="global")
+    return alloc_buffer([1], "uint32", scope="global")
 
 
 def init_barrier_gpu(barrier: PrimExpr, expected: int):
@@ -948,8 +948,7 @@ def init_barrier_gpu(barrier: PrimExpr, expected: int):
         barrier: The barrier to initialize
         expected (int): The number of threads that need to arrive at the barrier.
     """
-    return tir.call_intrin("handle", tir.op.Op.get("tl.init_barrier_gpu"), address_of(barrier),
-                           expected)
+    return tir.call_intrin("handle", tir.op.Op.get("tl.init_barrier_gpu"), address_of(barrier), expected)
 
 
 def arrive_barrier_gpu(barrier: PrimExpr):
@@ -986,8 +985,7 @@ def barrier_blocks(barrier: PrimExpr):
     Args:
         barrier: The barrier to synchronize at, should be [num_ranks] of int32
     """
-    return tir.call_intrin("handle", tir.op.Op.get("tl.tileop.barrier_blocks"), address_of(barrier),
-                           1)  # whether need fence
+    return tir.call_intrin("handle", tir.op.Op.get("tl.tileop.barrier_blocks"), address_of(barrier), 1)  # whether need fence
 
 
 def sync_blocks(barrier: PrimExpr):
@@ -996,8 +994,7 @@ def sync_blocks(barrier: PrimExpr):
     Args:
         barrier: The barrier to synchronize at, should be [num_ranks] of int32
     """
-    return tir.call_intrin("handle", tir.op.Op.get("tl.tileop.barrier_blocks"), address_of(barrier),
-                           0)  # whether need fence
+    return tir.call_intrin("handle", tir.op.Op.get("tl.tileop.barrier_blocks"), address_of(barrier), 0)  # whether need fence
 
 
 def fence_cta():
@@ -1040,15 +1037,14 @@ def ld(
         tir.Call: A handle to the load operation.
     """
     assert scope in ["cta", "gpu", "sys"], "Scope must be one of 'cta', 'gpu', or 'sys'."
-    assert sem in [
-        "weak", "volatile", "acquire", "relaxed"
-    ], "Semantic must be one of 'weak', 'volatile', 'acquire', 'release', or 'relaxed'."
+    assert sem in ["weak", "volatile", "acquire", "relaxed"], (
+        "Semantic must be one of 'weak', 'volatile', 'acquire', 'release', or 'relaxed'."
+    )
     scope = {"cta": 0, "gpu": 1, "sys": 2}[scope]
     sem = {"weak": 0, "volatile": 1, "acquire": 2, "release": 3, "relaxed": 4}[sem]
     na = 1 if na else 0
     nc = 1 if nc else 0
-    return tir.call_intrin("handle", tir.op.Op.get("tl.tileop.ld"), address_of(src), value, sem, scope, na,
-                           nc, src_pe)
+    return tir.call_intrin("handle", tir.op.Op.get("tl.tileop.ld"), address_of(src), value, sem, scope, na, nc, src_pe)
 
 
 def st(
@@ -1074,15 +1070,13 @@ def st(
         tir.Call: A handle to the store operation.
     """
     assert scope in ["cta", "gpu", "sys"], "Scope must be one of 'cta', 'gpu', or 'sys'."
-    assert sem in ["weak", "volatile", "release", "relaxed"
-                  ], "Semantic must be one of 'weak', 'volatile', 'release', or 'relaxed'."
+    assert sem in ["weak", "volatile", "release", "relaxed"], "Semantic must be one of 'weak', 'volatile', 'release', or 'relaxed'."
 
     # convert to int
     scope = {"cta": 0, "gpu": 1, "sys": 2}[scope]
     sem = {"weak": 0, "volatile": 1, "acquire": 2, "release": 3, "relaxed": 4}[sem]
     na = 1 if na else 0
-    return tir.call_intrin("handle", tir.op.Op.get("tl.tileop.st"), address_of(dst), value, sem, scope, na,
-                           dst_pe)
+    return tir.call_intrin("handle", tir.op.Op.get("tl.tileop.st"), address_of(dst), value, sem, scope, na, dst_pe)
 
 
 def sync_warp():
@@ -1117,7 +1111,7 @@ def warp_all(value, mask=-1):
 
 
 def atom_add(target: PrimExpr, value: PrimExpr, scope: str = "gpu", sem: str = "relaxed"):
-    """Perform an atomic addtion to a value with specified scope and semantic.
+    """Perform an atomic addition to a value with specified scope and semantic.
     Args:
         target: The target to add to.
         value: The value to add.
@@ -1125,7 +1119,5 @@ def atom_add(target: PrimExpr, value: PrimExpr, scope: str = "gpu", sem: str = "
         sem: The memory semantic.
     """
     assert scope in ["gpu", "sys"], "Scope must be one of 'gpu', or 'sys'."
-    assert sem in ["relaxed", "acquire", "release", "acq_rel"
-                  ], "Semantic must be one of 'relaxed', 'acquire', 'release', or 'acq_rel'."
-    return tir.call_intrin("uint32", tir.op.Op.get("tl.atom_add"), address_of(target), value, sem,
-                           scope)
+    assert sem in ["relaxed", "acquire", "release", "acq_rel"], "Semantic must be one of 'relaxed', 'acquire', 'release', or 'acq_rel'."
+    return tir.call_intrin("uint32", tir.op.Op.get("tl.atom_add"), address_of(target), value, sem, scope)

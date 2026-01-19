@@ -329,10 +329,8 @@ TIR_DEFINE_TL_BUILTIN(increase_descriptor_offset)
     .set_attr<TCallEffectKind>("TCallEffectKind",
                                Integer(CallEffectKind::kOpaque));
 
-TIR_DEFINE_TL_BUILTIN(atom_add)
-    .set_num_inputs(4)
-    .set_attr<TCallEffectKind>("TCallEffectKind", 
-                               Integer(CallEffectKind::kOpaque));
+TIR_DEFINE_TL_BUILTIN(atom_add).set_num_inputs(4).set_attr<TCallEffectKind>(
+    "TCallEffectKind", Integer(CallEffectKind::kOpaque));
 
 TIR_DEFINE_TL_BUILTIN(atomicadd_elem_op)
     .set_num_inputs(3)

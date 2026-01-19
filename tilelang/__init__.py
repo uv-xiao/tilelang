@@ -50,12 +50,12 @@ __version__ = _compute_version()
 from importlib.metadata import PackageNotFoundError, version
 
 try:
-    __version__ = version('tilelang')
+    __version__ = version("tilelang")
 except PackageNotFoundError:
     try:
         from version_provider import dynamic_metadata
 
-        __version__ = dynamic_metadata('version')
+        __version__ = dynamic_metadata("version")
     except Exception as exc:
         warnings.warn(
             f"tilelang version metadata unavailable ({exc!r}); using development version.",

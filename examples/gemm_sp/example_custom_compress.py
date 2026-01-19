@@ -294,9 +294,7 @@ def compress_kernel(M, K, block_M, block_K, dtype, use_cutlass_layout):
 def main(m=16384, n=16384, k=16384, use_cutlass_layout=False, use_torch_compressor=False, accum_dtype=None, cfg="4090"):
     if accum_dtype is None:
         accum_dtype = T.float
-    kernel = matmul_sp_fp16_custom_compress(
-        m, n, k, accum_dtype, **DEFAULT_CONFIG[cfg][accum_dtype], use_cutlass_layout=use_cutlass_layout
-    )
+    kernel = matmul_sp_fp16_custom_compress(m, n, k, accum_dtype, **DEFAULT_CONFIG[cfg][accum_dtype], use_cutlass_layout=use_cutlass_layout)
 
     a = randn_semi_sparse(m, k, device="cuda", dtype=torch.half)
     b = torch.randn(k, n, device="cuda", dtype=torch.half)

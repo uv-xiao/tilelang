@@ -1,4 +1,5 @@
 """The compiler for TL programs."""
+
 from __future__ import annotations
 
 import os
@@ -94,8 +95,7 @@ def tilelang_callback_cuda_compile(code, target, pass_config=None):
             options.append("-rdc=true")
         else:
             raise ValueError(
-                "TILELANG_USE_DISTRIBUTED is enabled but NVSHMEM paths not found. "
-                "Install nvidia-nvshmem-cu12 via pip or set NVSHMEM_SRC."
+                "TILELANG_USE_DISTRIBUTED is enabled but NVSHMEM paths not found. Install nvidia-nvshmem-cu12 via pip or set NVSHMEM_SRC."
             )
 
     # Merge extra device compiler flags from pass config, if provided

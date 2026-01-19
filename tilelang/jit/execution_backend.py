@@ -83,6 +83,7 @@ def resolve_execution_backend(requested: str | None, target: Target) -> str:
         if kind == "cuda":
             # Use cython for distributed mode (NVSHMEM requires RDC linking)
             from tilelang import env
+
             if env.USE_DISTRIBUTED or env.USE_NVSHMEM:
                 choice = "cython"
             else:

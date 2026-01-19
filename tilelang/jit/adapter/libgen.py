@@ -13,7 +13,6 @@ from tilelang.transform import PassConfigKey
 from tilelang.contrib.nvcc import get_nvcc_compiler, get_target_arch, get_target_compute_version
 from tilelang.contrib.rocm import find_rocm_path, get_rocm_arch
 from tilelang import env
-from tilelang.utils.deprecated import deprecated_warning
 
 from .utils import is_cpu_target, is_cuda_target, is_hip_target
 
@@ -133,10 +132,7 @@ class LibraryGenerator:
             command += ["-diag-suppress=20013"]
             if not disable_rdc:
                 command += ["-rdc=true"]
-            command += [
-                "-I" + env.NVSHMEM_INCLUDE_DIR, "-L" + env.NVSHMEM_LIB_PATH,
-                "-lnvshmem_host", "-lnvshmem_device"
-            ]
+            command += ["-I" + env.NVSHMEM_INCLUDE_DIR, "-L" + env.NVSHMEM_LIB_PATH, "-lnvshmem_host", "-lnvshmem_device"]
 
         if self.compile_flags:
             command += [item for flag in self.compile_flags for item in flag.split() if item not in command]

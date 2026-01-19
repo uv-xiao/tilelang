@@ -128,7 +128,7 @@ class BaseTemplate(ABC):
         self._func = func
         return self
 
-    def set_output_nodes(self, output_nodes: list[OutputNode]) -> "BaseTemplate":
+    def set_output_nodes(self, output_nodes: list[OutputNode]) -> BaseTemplate:
         """
         Sets the output nodes for this template and returns itself.
 

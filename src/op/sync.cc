@@ -35,8 +35,10 @@ PrimExpr BarrierBlocksOpNode::get_offset(const BufferLoadNode *load) const {
   }                                                                            \
   TVM_REGISTER_OP("tl." #OpName)                                               \
       .set_attr<TScriptPrinterName>("TScriptPrinterName", #OpName)
-BarrierBlocksOp::BarrierBlocksOp(Array<PrimExpr> args, Map<String, ObjectRef> annotations) {
-  ObjectPtr<BarrierBlocksOpNode> node = tvm::ffi::make_object<BarrierBlocksOpNode>();
+BarrierBlocksOp::BarrierBlocksOp(Array<PrimExpr> args,
+                                 Map<String, ObjectRef> annotations) {
+  ObjectPtr<BarrierBlocksOpNode> node =
+      tvm::ffi::make_object<BarrierBlocksOpNode>();
   node->local_bar_addr = args[0];
   node->need_fence = bool(args[1].as<IntImmNode>()->value);
   const auto *call = node->local_bar_addr.as<CallNode>();
@@ -172,17 +174,25 @@ TIR_REGISTER_TL_TILE_OP(WaitOp, wait)
     .set_attr<TCallEffectKind>("TCallEffectKind",
                                Integer(CallEffectKind::kOpaque));
 
-TIR_DEFINE_TL_BUILTIN(init_barrier_gpu).set_num_inputs(2).set_attr<TCallEffectKind>(
-    "TCallEffectKind", Integer(CallEffectKind::kOpaque));
+TIR_DEFINE_TL_BUILTIN(init_barrier_gpu)
+    .set_num_inputs(2)
+    .set_attr<TCallEffectKind>("TCallEffectKind",
+                               Integer(CallEffectKind::kOpaque));
 
-TIR_DEFINE_TL_BUILTIN(arrive_barrier_gpu).set_num_inputs(1).set_attr<TCallEffectKind>(
-    "TCallEffectKind", Integer(CallEffectKind::kOpaque));
+TIR_DEFINE_TL_BUILTIN(arrive_barrier_gpu)
+    .set_num_inputs(1)
+    .set_attr<TCallEffectKind>("TCallEffectKind",
+                               Integer(CallEffectKind::kOpaque));
 
-TIR_DEFINE_TL_BUILTIN(wait_barrier_gpu).set_num_inputs(1).set_attr<TCallEffectKind>(
-    "TCallEffectKind", Integer(CallEffectKind::kOpaque));
+TIR_DEFINE_TL_BUILTIN(wait_barrier_gpu)
+    .set_num_inputs(1)
+    .set_attr<TCallEffectKind>("TCallEffectKind",
+                               Integer(CallEffectKind::kOpaque));
 
-TIR_DEFINE_TL_BUILTIN(sync_barrier_gpu).set_num_inputs(1).set_attr<TCallEffectKind>(
-    "TCallEffectKind", Integer(CallEffectKind::kOpaque));
+TIR_DEFINE_TL_BUILTIN(sync_barrier_gpu)
+    .set_num_inputs(1)
+    .set_attr<TCallEffectKind>("TCallEffectKind",
+                               Integer(CallEffectKind::kOpaque));
 
 TIR_DEFINE_TL_BUILTIN(fence_cta).set_num_inputs(0).set_attr<TCallEffectKind>(
     "TCallEffectKind", Integer(CallEffectKind::kOpaque));

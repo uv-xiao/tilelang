@@ -1,11 +1,12 @@
 """The profiler and convert to torch utils"""
 
+from __future__ import annotations
 from enum import Enum
 import torch
 from tvm import tir
 import numpy as np
-from tilelang.utils.allocator import BaseAllocator
 from tilelang.utils.target import parse_device
+from tilelang.utils.allocator import BaseAllocator
 
 
 def is_float8_dtype(dtype: torch.dtype) -> bool:
@@ -34,11 +35,13 @@ class TensorSupplyType(Enum):
     Auto = 7
 
 
-def tensor(shape: tuple[int, ...],
-           dtype: torch.dtype,
-           device: str | torch.device | int | None = None,
-           allocator: BaseAllocator | None = None,
-           return_peers: bool | None = None) -> torch.Tensor | list[torch.Tensor]:
+def tensor(
+    shape: tuple[int, ...],
+    dtype: torch.dtype,
+    device: str | torch.device | int | None = None,
+    allocator: BaseAllocator | None = None,
+    return_peers: bool | None = None,
+) -> torch.Tensor | list[torch.Tensor]:
     """Allocate a tensor using the given allocator or standard torch allocation.
 
     Args:
@@ -55,8 +58,9 @@ def tensor(shape: tuple[int, ...],
         assert allocator.initialized(), "Allocator is not initialized"
         if device is not None:
             device = parse_device(device)
-            assert allocator.device == device, f"Allocator device must be the " \
-                f"same as the device of the tensor, but got {allocator.device} != {device}"
+            assert allocator.device == device, (
+                f"Allocator device must be the same as the device of the tensor, but got {allocator.device} != {device}"
+            )
         return allocator._allocate_tensor(shape, dtype, return_peers)
     else:
         return torch.empty(shape, dtype=dtype, device=device)

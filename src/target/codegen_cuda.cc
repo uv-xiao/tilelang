@@ -1687,10 +1687,10 @@ void CodeGenTileLangCUDA::VisitExpr_(const CallNode *op, std::ostream &os) {
   } else if (op->op.same_as(tl::pack_b16())) {
     os << "__pack_half2(" << this->PrintExpr(op->args[0]) << ", "
        << this->PrintExpr(op->args[1]) << ")";
-  // } else if (op->op.same_as(tl::sync_grid_cg())) {
-  //   this->need_cooperative_groups_ = true;
-  //   this->PrintIndent();
-  //   this->stream << "cooperative_groups::this_grid().sync();\n";
+    // } else if (op->op.same_as(tl::sync_grid_cg())) {
+    //   this->need_cooperative_groups_ = true;
+    //   this->PrintIndent();
+    //   this->stream << "cooperative_groups::this_grid().sync();\n";
   } else if (op->op.same_as(tl::init_barrier_gpu())) {
     ICHECK_GE(op->args.size(), 2);
     this->PrintIndent();
@@ -1717,8 +1717,8 @@ void CodeGenTileLangCUDA::VisitExpr_(const CallNode *op, std::ostream &os) {
                             op->args[3].as<StringImmNode>()->value;
     os << func_name << "(" << this->PrintExpr(op->args[0]) << ", "
        << this->PrintExpr(op->args[1]) << ")";
-  // } else if (op->op.same_as(tl::get_clock())) {
-  //   os << "get_clock()";
+    // } else if (op->op.same_as(tl::get_clock())) {
+    //   os << "get_clock()";
   } else if (op->op.same_as(tl::loop_break())) {
     this->PrintIndent();
     this->stream << "break;\n";
@@ -2865,8 +2865,9 @@ void CodeGenTileLangCUDA::VisitExpr_(const CallNode *op, std::ostream &os) {
     this->use_distributed_ = true;
     std::string ptr_str = this->PrintExpr(op->args[0]);
     os << "tl::get_uintptr_t(" << ptr_str << ")";
-  // Note: tl.put, tl.get, tl.wait are TileOperators handled through remote_copy.cc
-  // They are lowered to call_extern with tl::cp_warp/tl::cp_block templates
+    // Note: tl.put, tl.get, tl.wait are TileOperators handled through
+    // remote_copy.cc They are lowered to call_extern with
+    // tl::cp_warp/tl::cp_block templates
   } else {
     CodeGenC::VisitExpr_(op, os);
   }

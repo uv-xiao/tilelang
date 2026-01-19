@@ -56,7 +56,8 @@ public:
 class WaitOp : public TileOperator {
 public:
   TVM_FFI_DEFINE_OBJECT_REF_METHODS_NULLABLE(WaitOp, TileOperator, WaitOpNode);
-  TVM_DLL WaitOp(Array<PrimExpr> args, Map<String, ObjectRef> annotations = Map<String, ObjectRef>());
+  TVM_DLL WaitOp(Array<PrimExpr> args,
+                 Map<String, ObjectRef> annotations = Map<String, ObjectRef>());
   static const Op &Get();
 };
 
@@ -74,7 +75,8 @@ public:
   Array<PrimExpr> local_indices; ///< Indices used to access the barrier buffer
   bool need_fence;               ///< Whether need sys-level fence
 
-  TVM_FFI_DECLARE_OBJECT_INFO_FINAL("tl.BarrierBlocksOp", BarrierBlocksOpNode, TileOperatorNode);
+  TVM_FFI_DECLARE_OBJECT_INFO_FINAL("tl.BarrierBlocksOp", BarrierBlocksOpNode,
+                                    TileOperatorNode);
 
   static void RegisterReflection() {
     namespace refl = tvm::ffi::reflection;
@@ -104,8 +106,10 @@ private:
 class BarrierBlocksOp : public TileOperator {
 public:
   TVM_FFI_DEFINE_OBJECT_REF_METHODS_NULLABLE(BarrierBlocksOp, TileOperator,
-                                              BarrierBlocksOpNode);
-  TVM_DLL BarrierBlocksOp(Array<PrimExpr> args, Map<String, ObjectRef> annotations = Map<String, ObjectRef>());
+                                             BarrierBlocksOpNode);
+  TVM_DLL BarrierBlocksOp(
+      Array<PrimExpr> args,
+      Map<String, ObjectRef> annotations = Map<String, ObjectRef>());
   static const Op &Get();
 };
 

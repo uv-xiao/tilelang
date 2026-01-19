@@ -10,7 +10,6 @@ from tilelang import _ffi_api
 from tvm.target import Target
 from tvm.contrib import rocm
 from tilelang.contrib import nvcc
-import torch
 
 SUPPORTED_TARGETS: dict[str, str] = {
     "auto": "Auto-detect CUDA/HIP/Metal based on availability.",
@@ -264,11 +263,11 @@ def parse_device(device: str | torch.device | int | None) -> int:
         if device.startswith("cuda:"):
             try:
                 return int(device[5:])
-            except ValueError:
-                raise ValueError(f"Invalid device specification: {device}")
+            except ValueError as e:
+                raise ValueError(f"Invalid device specification: {device}") from e
         try:
             return int(device)
-        except ValueError:
-            raise ValueError(f"Invalid device specification: {device}")
+        except ValueError as e:
+            raise ValueError(f"Invalid device specification: {device}") from e
 
     raise ValueError(f"Invalid device type: {type(device)}")

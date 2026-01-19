@@ -20,7 +20,7 @@ template <typename T> struct is_bfloat16 : std::false_type {};
 template <> struct is_bfloat16<__nv_bfloat16> : std::true_type {};
 #endif
 
-}
+} // namespace tl
 
 // Detect cutlass bfloat16_t
 namespace cutlass {

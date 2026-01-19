@@ -43,21 +43,14 @@ def torch_reverse_all_to_all_transpose_reference(data_src, group):
     # Step 2: Prepare output list for all_to_all
     output_list = []
     for _ in range(world_size):
-        recv_data = torch.empty(
-            batch_size,
-            heads_per_pe,
-            seq_per_pe,
-            head_dim,
-            dtype=data_src.dtype,
-            device=data_src.device)
+        recv_data = torch.empty(batch_size, heads_per_pe, seq_per_pe, head_dim, dtype=data_src.dtype, device=data_src.device)
         output_list.append(recv_data)
 
     # Step 3: Execute all_to_all
     dist.all_to_all(output_list, input_list, group=group)
 
     # Step 4: Reorganize received data
-    result = torch.empty(
-        batch_size, seq_per_pe, num_heads, head_dim, dtype=data_src.dtype, device=data_src.device)
+    result = torch.empty(batch_size, seq_per_pe, num_heads, head_dim, dtype=data_src.dtype, device=data_src.device)
 
     for pe_idx in range(world_size):
         head_start = pe_idx * heads_per_pe
@@ -69,12 +62,7 @@ def torch_reverse_all_to_all_transpose_reference(data_src, group):
     return result
 
 
-def sequence_parallel_reverse_all_to_all_transpose(PE_num,
-                                                   BATCH_SIZE,
-                                                   NUM_HEADS,
-                                                   SEQ_LEN,
-                                                   HEAD_DIM,
-                                                   dtype="float16"):
+def sequence_parallel_reverse_all_to_all_transpose(PE_num, BATCH_SIZE, NUM_HEADS, SEQ_LEN, HEAD_DIM, dtype="float16"):
     """
     Reverse All-to-All: Convert from head parallel to sequence parallel
     Input:  [BATCH_SIZE, HEADS_PER_PE, SEQ_LEN, HEAD_DIM]
@@ -88,9 +76,9 @@ def sequence_parallel_reverse_all_to_all_transpose(PE_num,
 
     @T.prim_func
     def main(
-            data_src: T.Tensor((BATCH_SIZE, HEADS_PER_PE, SEQ_LEN, HEAD_DIM), dtype),
-            data_dst: T.Tensor((BATCH_SIZE, SEQ_PER_PE, NUM_HEADS, HEAD_DIM), dtype),
-            signal: T.Tensor((PE_num,), "uint64"),
+        data_src: T.Tensor((BATCH_SIZE, HEADS_PER_PE, SEQ_LEN, HEAD_DIM), dtype),
+        data_dst: T.Tensor((BATCH_SIZE, SEQ_PER_PE, NUM_HEADS, HEAD_DIM), dtype),
+        signal: T.Tensor((PE_num,), "uint64"),
     ):
         with T.Kernel(NUM_BLOCKS_X, PE_num, threads=128) as (bx, target_pe):
             tx = T.thread_binding(128, thread="threadIdx.x")
@@ -118,8 +106,10 @@ def sequence_parallel_reverse_all_to_all_transpose(PE_num,
 
                     T.putmem_nbi_block(
                         T.address_of(data_dst[batch_idx, seq_idx, dst_head_idx, 0]),
-                        T.address_of(data_src[batch_idx, head_idx, src_seq_idx, 0]), transfer_size,
-                        target_pe)
+                        T.address_of(data_src[batch_idx, head_idx, src_seq_idx, 0]),
+                        transfer_size,
+                        target_pe,
+                    )
 
             T.fence()
 
@@ -129,7 +119,8 @@ def sequence_parallel_reverse_all_to_all_transpose(PE_num,
                     T.address_of(signal[mype[0]]),
                     1,  # Signal the number of head chunks processed
                     T.Amo.SIGNAL_ADD,
-                    target_pe)
+                    target_pe,
+                )
                 T.fence()
                 # Wait for all blocks to complete all head transfers
                 T.signal_wait_until(T.address_of(signal[target_pe]), T.CmpType.EQ, NUM_BLOCKS_X)
@@ -203,13 +194,8 @@ def test_reverse_transpose_all_to_all_with_golden_reference():
         print("Converting from HEAD_PARALLEL to SEQUENCE_PARALLEL")
 
     # Compile TileLang kernel
-    func = sequence_parallel_reverse_all_to_all_transpose(PE_num, args.batch_size, args.num_heads,
-                                                          args.seq_len, args.head_dim, args.dtype)
-    kernel = tilelang.compile(
-        func, pass_configs={
-            "tl.disable_tma_lower": True,
-            "tl.disable_warp_specialized": True
-        })
+    func = sequence_parallel_reverse_all_to_all_transpose(PE_num, args.batch_size, args.num_heads, args.seq_len, args.head_dim, args.dtype)
+    kernel = tilelang.compile(func, pass_configs={"tl.disable_tma_lower": True, "tl.disable_warp_specialized": True})
 
     if RANK == 0:
         print("\nTileLang Kernel Source:")
@@ -219,9 +205,7 @@ def test_reverse_transpose_all_to_all_with_golden_reference():
     dtype_torch = dtype_map[args.dtype]
 
     # Create input data: [BATCH_SIZE, HEADS_PER_PE, SEQ_LEN, HEAD_DIM] - head parallel format
-    input_data = torch.rand([args.batch_size, HEADS_PER_PE, args.seq_len, args.head_dim],
-                            dtype=dtype_torch,
-                            device='cuda')
+    input_data = torch.rand([args.batch_size, HEADS_PER_PE, args.seq_len, args.head_dim], dtype=dtype_torch, device="cuda")
 
     print(f"PE {RANK} Input shape: {input_data.shape}")
     print(f"PE {RANK} Input sample: {input_data[0, 0, 0, :3]}")
@@ -235,10 +219,8 @@ def test_reverse_transpose_all_to_all_with_golden_reference():
     # === Test 2: TileLang NVSHMEM Implementation ===
     def tilelang_reverse_all_to_all():
         # Create NVSHMEM tensors
-        data_src = pynvshmem.nvshmem_create_tensor(
-            [args.batch_size, HEADS_PER_PE, args.seq_len, args.head_dim], dtype_torch)
-        data_dst = pynvshmem.nvshmem_create_tensor(
-            [args.batch_size, SEQ_PER_PE, args.num_heads, args.head_dim], dtype_torch)
+        data_src = pynvshmem.nvshmem_create_tensor([args.batch_size, HEADS_PER_PE, args.seq_len, args.head_dim], dtype_torch)
+        data_dst = pynvshmem.nvshmem_create_tensor([args.batch_size, SEQ_PER_PE, args.num_heads, args.head_dim], dtype_torch)
         signal = pynvshmem.nvshmem_create_tensor([PE_num], torch.uint64)
 
         # Initialize data
@@ -285,9 +267,7 @@ def test_roundtrip_consistency():
     SEQ_PER_PE = args.seq_len // WORLD_SIZE
 
     # Create original data in sequence parallel format
-    original_data = torch.rand([args.batch_size, SEQ_PER_PE, args.num_heads, args.head_dim],
-                               dtype=dtype_torch,
-                               device='cuda')
+    original_data = torch.rand([args.batch_size, SEQ_PER_PE, args.num_heads, args.head_dim], dtype=dtype_torch, device="cuda")
 
     # Forward: sequence parallel -> head parallel
     head_parallel_data = torch_sequence_all_to_all_transpose_reference(original_data, TP_GROUP)

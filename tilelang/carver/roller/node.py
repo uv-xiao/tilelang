@@ -1,4 +1,5 @@
 """PrimFunc Wrapper and Block information Analaysis"""
+
 from __future__ import annotations
 
 import tvm

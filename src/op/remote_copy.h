@@ -32,9 +32,11 @@ public:
   Buffer src_buffer;           ///< Source buffer reference
   Buffer dst_buffer;           ///< Destination buffer reference
   Array<PrimExpr> src_indices; ///< Source indices used for address computation
-  Array<PrimExpr> dst_indices; ///< Destination indices used for address computation
-  std::string scope;           ///< Scope: {warp, block}
-  bool enable_aggressive_vectorize; ///< Whether to enable aggressive vectorization
+  Array<PrimExpr>
+      dst_indices;   ///< Destination indices used for address computation
+  std::string scope; ///< Scope: {warp, block}
+  bool enable_aggressive_vectorize; ///< Whether to enable aggressive
+                                    ///< vectorization
 
   bool is_distributed() const;
 
@@ -53,7 +55,8 @@ public:
         .def_ro("src_indices", &PutOpNode::src_indices)
         .def_ro("dst_indices", &PutOpNode::dst_indices)
         .def_ro("scope", &PutOpNode::scope)
-        .def_ro("enable_aggressive_vectorize", &PutOpNode::enable_aggressive_vectorize);
+        .def_ro("enable_aggressive_vectorize",
+                &PutOpNode::enable_aggressive_vectorize);
   }
 
   Stmt Lower(const LowerArgs &T, arith::Analyzer *analyzer) const override;
@@ -74,7 +77,8 @@ private:
 class PutOp : public TileOperator {
 public:
   TVM_FFI_DEFINE_OBJECT_REF_METHODS_NULLABLE(PutOp, TileOperator, PutOpNode);
-  TVM_DLL PutOp(Array<PrimExpr> args, Map<String, ObjectRef> annotations = Map<String, ObjectRef>());
+  TVM_DLL PutOp(Array<PrimExpr> args,
+                Map<String, ObjectRef> annotations = Map<String, ObjectRef>());
   static const Op &Get();
 };
 
@@ -93,9 +97,11 @@ public:
   Buffer src_buffer;           ///< Source buffer reference
   Buffer dst_buffer;           ///< Destination buffer reference
   Array<PrimExpr> src_indices; ///< Source indices used for address computation
-  Array<PrimExpr> dst_indices; ///< Destination indices used for address computation
-  std::string scope;           ///< Scope: {warp, block}
-  bool enable_aggressive_vectorize; ///< Whether to enable aggressive vectorization
+  Array<PrimExpr>
+      dst_indices;   ///< Destination indices used for address computation
+  std::string scope; ///< Scope: {warp, block}
+  bool enable_aggressive_vectorize; ///< Whether to enable aggressive
+                                    ///< vectorization
 
   bool is_distributed() const;
 
@@ -114,7 +120,8 @@ public:
         .def_ro("src_indices", &GetOpNode::src_indices)
         .def_ro("dst_indices", &GetOpNode::dst_indices)
         .def_ro("scope", &GetOpNode::scope)
-        .def_ro("enable_aggressive_vectorize", &GetOpNode::enable_aggressive_vectorize);
+        .def_ro("enable_aggressive_vectorize",
+                &GetOpNode::enable_aggressive_vectorize);
   }
 
   Stmt Lower(const LowerArgs &T, arith::Analyzer *analyzer) const override;
@@ -135,7 +142,8 @@ private:
 class GetOp : public TileOperator {
 public:
   TVM_FFI_DEFINE_OBJECT_REF_METHODS_NULLABLE(GetOp, TileOperator, GetOpNode);
-  TVM_DLL GetOp(Array<PrimExpr> args, Map<String, ObjectRef> annotations = Map<String, ObjectRef>());
+  TVM_DLL GetOp(Array<PrimExpr> args,
+                Map<String, ObjectRef> annotations = Map<String, ObjectRef>());
   static const Op &Get();
 };
 
@@ -176,7 +184,8 @@ public:
 class StOp : public TileOperator {
 public:
   TVM_FFI_DEFINE_OBJECT_REF_METHODS_NULLABLE(StOp, TileOperator, StOpNode);
-  TVM_DLL StOp(Array<PrimExpr> args, Map<String, ObjectRef> annotations = Map<String, ObjectRef>());
+  TVM_DLL StOp(Array<PrimExpr> args,
+               Map<String, ObjectRef> annotations = Map<String, ObjectRef>());
   static const Op &Get();
 };
 
@@ -219,7 +228,8 @@ public:
 class LdOp : public TileOperator {
 public:
   TVM_FFI_DEFINE_OBJECT_REF_METHODS_NULLABLE(LdOp, TileOperator, LdOpNode);
-  TVM_DLL LdOp(Array<PrimExpr> args, Map<String, ObjectRef> annotations = Map<String, ObjectRef>());
+  TVM_DLL LdOp(Array<PrimExpr> args,
+               Map<String, ObjectRef> annotations = Map<String, ObjectRef>());
   static const Op &Get();
 };
 

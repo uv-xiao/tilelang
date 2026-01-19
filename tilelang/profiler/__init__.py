@@ -1,4 +1,5 @@
 """The profiler and convert to torch utils"""
+
 from __future__ import annotations
 
 from typing import Callable, Any, Literal
@@ -31,6 +32,7 @@ def _use_distributed():
     """Check if distributed mode is enabled in the environment."""
     val = str(env.USE_DISTRIBUTED).lower()
     return val in ("1", "true", "yes", "on")
+
 
 logger = logging.getLogger(__name__)
 
@@ -99,8 +101,7 @@ class Profiler:
             try:
                 import pynvshmem
             except ImportError as e:
-                raise ValueError(
-                    "pynvshmem is not installed but required for distributed inputs") from e
+                raise ValueError("pynvshmem is not installed but required for distributed inputs") from e
             pynvshmem.init_nvshmem_by_uniqueid(TP_GROUP)
 
     def _get_inputs(self, with_output=False):
@@ -117,8 +118,7 @@ class Profiler:
         try:
             import pynvshmem
         except ImportError as e:
-            raise ValueError(
-                "pynvshmem is not installed but required for distributed inputs") from e
+            raise ValueError("pynvshmem is not installed but required for distributed inputs") from e
 
         ins = []
         for i in range(len(self.params)):
@@ -129,21 +129,17 @@ class Profiler:
                     is_unsigned = self.params[i].is_unsigned()
                     is_float8 = self.params[i].is_float8()
                     if is_unsigned:
-                        tensor[:] = torch.randint(
-                            low=0, high=3, size=shape, device=tensor.device, dtype=tensor.dtype)
+                        tensor[:] = torch.randint(low=0, high=3, size=shape, device=tensor.device, dtype=tensor.dtype)
                     elif is_float8:
-                        tensor[:] = torch.randint(
-                            low=-128, high=128, size=shape, device=tensor.device,
-                            dtype=torch.int8).to(dtype=tensor.dtype)
+                        tensor[:] = torch.randint(low=-128, high=128, size=shape, device=tensor.device, dtype=torch.int8).to(
+                            dtype=tensor.dtype
+                        )
                     else:
-                        tensor[:] = torch.randint(
-                            low=-2, high=3, size=shape, device=tensor.device, dtype=tensor.dtype)
+                        tensor[:] = torch.randint(low=-2, high=3, size=shape, device=tensor.device, dtype=tensor.dtype)
                 elif self.supply_type == TensorSupplyType.Uniform:
-                    tensor[:] = torch.empty(
-                        *shape, device=tensor.device, dtype=tensor.dtype).uniform_(-1.0, 1.0)
+                    tensor[:] = torch.empty(*shape, device=tensor.device, dtype=tensor.dtype).uniform_(-1.0, 1.0)
                 elif self.supply_type == TensorSupplyType.Normal:
-                    tensor[:] = torch.empty(
-                        *shape, device=tensor.device, dtype=tensor.dtype).normal_(-1.0, 1.0)
+                    tensor[:] = torch.empty(*shape, device=tensor.device, dtype=tensor.dtype).normal_(-1.0, 1.0)
                 elif self.supply_type == TensorSupplyType.Randn:
                     tensor[:] = torch.randn(*shape, device=tensor.device).to(dtype=tensor.dtype)
                 elif self.supply_type == TensorSupplyType.Zero:

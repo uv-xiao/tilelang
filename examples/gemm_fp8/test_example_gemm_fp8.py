@@ -10,8 +10,7 @@ def requires_sm89():
     """FP8 tensor core MMA requires SM89 (Ada Lovelace) or higher."""
     major, minor = torch.cuda.get_device_capability()
     return pytest.mark.skipif(
-        major < 9 and not (major == 8 and minor >= 9),
-        reason="FP8 tensor core MMA requires SM89 or higher (Ada Lovelace/Hopper)"
+        major < 9 and not (major == 8 and minor >= 9), reason="FP8 tensor core MMA requires SM89 or higher (Ada Lovelace/Hopper)"
     )
 
 
