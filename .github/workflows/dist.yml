@@ -106,11 +106,12 @@ jobs:
     strategy:
       matrix:
         target:
+          # NOTE(wt): Temporarily disable ARM nad MacOS here because NVSHMEM only supports Linux
           - { runner: ubuntu-latest, toolkit: "CUDA-12.8" }
-          - { runner: ubuntu-24.04-arm, toolkit: "CUDA-12.8" }
+          # - { runner: ubuntu-24.04-arm, toolkit: "CUDA-12.8" }
           - { runner: ubuntu-latest, toolkit: "CUDA-13.1" }
-          - { runner: ubuntu-24.04-arm, toolkit: "CUDA-13.1" }
-          - { runner: macos-latest, toolkit: "Metal" }
+          # - { runner: ubuntu-24.04-arm, toolkit: "CUDA-13.1" }
+          # - { runner: macos-latest, toolkit: "Metal" }
         python-version:
           # Wheels are built with Python 3.8 Limited API, they should work with all Python >= 3.8.
           # Only build wheels against Python 3.8 Limited API to save CI resources.
