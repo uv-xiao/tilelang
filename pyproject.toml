@@ -42,6 +42,7 @@ dependencies = [
     "typing-extensions>=4.10.0",
     "z3-solver>=4.13.0",
     "nvidia-nvshmem-cu12",
+    "tilescale_ext @ file:./tilelang/utils/ts_ext",
 ]
 
 [project.optional-dependencies]
