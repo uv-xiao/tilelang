@@ -357,13 +357,29 @@ if(USE_CUDA)
       ${CMAKE_CURRENT_SOURCE_DIR}/tilelang/utils/ts_ext/ipc_ops.cpp
     )
 
+    # Find libtorch_python.so
+    execute_process(
+      COMMAND "${Python_EXECUTABLE}" -c "import torch; import os; print(os.path.join(os.path.dirname(torch.__file__), 'lib', 'libtorch_python.so'))"
+      OUTPUT_VARIABLE TORCH_PYTHON_LIBRARY
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+      RESULT_VARIABLE TORCH_PYTHON_RESULT
+    )
+
     python_add_library(tilescale_ext_C MODULE ${TILESCALE_EXT_SOURCES} WITH_SOABI)
     target_compile_definitions(tilescale_ext_C PRIVATE TORCH_EXTENSION_NAME=_C)
     target_include_directories(tilescale_ext_C PRIVATE
       ${TORCH_INCLUDE_DIRS}
       ${CUDAToolkit_INCLUDE_DIRS}
     )
-    target_link_libraries(tilescale_ext_C PRIVATE ${TORCH_LIBRARIES} CUDA::cudart)
+
+    if(TORCH_PYTHON_RESULT EQUAL 0 AND EXISTS "${TORCH_PYTHON_LIBRARY}")
+      message(STATUS "Found libtorch_python: ${TORCH_PYTHON_LIBRARY}")
+      target_link_libraries(tilescale_ext_C PRIVATE ${TORCH_LIBRARIES} ${TORCH_PYTHON_LIBRARY} CUDA::cudart)
+    else()
+      message(WARNING "libtorch_python.so not found, extension may have undefined symbols")
+      target_link_libraries(tilescale_ext_C PRIVATE ${TORCH_LIBRARIES} CUDA::cudart)
+    endif()
+
     target_compile_options(tilescale_ext_C PRIVATE -fPIC)
     set_target_properties(tilescale_ext_C PROPERTIES
       OUTPUT_NAME "_C"
