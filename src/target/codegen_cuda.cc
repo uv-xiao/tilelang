@@ -2851,6 +2851,31 @@ void CodeGenTileLangCUDA::VisitExpr_(const CallNode *op, std::ostream &os) {
       }
     }
     os << ")";
+  } else if (op->op.same_as(tl::Quiet())) {
+    this->use_distributed_ = true;
+    this->use_nvshmem_ = true;
+    os << "nvshmem_quiet()";
+  } else if (op->op.same_as(tl::Fence())) {
+    this->use_distributed_ = true;
+    this->use_nvshmem_ = true;
+    os << "nvshmem_fence()";
+  } else if (op->op.same_as(tl::SyncAll())) {
+    this->use_distributed_ = true;
+    this->use_nvshmem_ = true;
+    os << "nvshmem_sync_all()";
+  } else if (op->op.same_as(tl::BarrierAll())) {
+    this->use_distributed_ = true;
+    this->use_nvshmem_ = true;
+    os << "nvshmem_barrier_all()";
+  } else if (op->op.same_as(tl::fence_cta())) {
+    this->use_distributed_ = true;
+    os << "tl::memory_fence_cta()";
+  } else if (op->op.same_as(tl::fence_gpu())) {
+    this->use_distributed_ = true;
+    os << "tl::memory_fence_gpu()";
+  } else if (op->op.same_as(tl::fence_sys())) {
+    this->use_distributed_ = true;
+    os << "tl::memory_fence_sys()";
   } else if (op->op.same_as(tl::get_rank())) {
     this->use_distributed_ = true;
     os << "tl::get_rank()";
@@ -2865,10 +2890,10 @@ void CodeGenTileLangCUDA::VisitExpr_(const CallNode *op, std::ostream &os) {
     this->use_distributed_ = true;
     std::string ptr_str = this->PrintExpr(op->args[0]);
     os << "tl::get_uintptr_t(" << ptr_str << ")";
+  } else {
     // Note: tl.put, tl.get, tl.wait are TileOperators handled through
     // remote_copy.cc They are lowered to call_extern with
     // tl::cp_warp/tl::cp_block templates
-  } else {
     CodeGenC::VisitExpr_(op, os);
   }
 }
