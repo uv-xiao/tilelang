@@ -301,7 +301,8 @@ jobs:
           )
 
           # Find and run distributed tests with TILELANG_USE_DISTRIBUTED=1
-          mapfile -t DIST_TESTS < <(find . -type f -path '*/distributed/*' -name 'test*.py' 2>/dev/null || true)
+          # DeepEP tests requires fullmesh nvl or internode environment, we disable for now
+          mapfile -t DIST_TESTS < <(find . -type f -path '*/distributed/*' -name 'test*.py'  ! -path '*deepep*' 2>/dev/null || true)
           if [ "${#DIST_TESTS[@]}" -gt 0 ]; then
             echo "Running distributed examples with TILELANG_USE_DISTRIBUTED=1:"
             printf '%s\n' "${DIST_TESTS[@]}"
