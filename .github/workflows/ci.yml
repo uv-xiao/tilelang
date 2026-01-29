@@ -318,7 +318,7 @@ jobs:
           if [ "${#OTHER_TESTS[@]}" -gt 0 ]; then
             echo "Running non-distributed examples:"
             printf '%s\n' "${OTHER_TESTS[@]}"
-            "${PYTEST[@]}" --maxfail=3 --numprocesses=4 "${OTHER_TESTS[@]}"
+            "${PYTEST[@]}" --maxfail=3 --numprocesses=2 "${OTHER_TESTS[@]}"
           else
             echo "No non-distributed example tests found."
           fi
@@ -351,7 +351,7 @@ jobs:
           if [ "${#OTHER_TESTS[@]}" -gt 0 ]; then
             echo "Running non-distributed tests:"
             printf '%s\n' "${OTHER_TESTS[@]}"
-            "${PYTEST[@]}" --maxfail=3 --numprocesses=4 "${OTHER_TESTS[@]}"
+            "${PYTEST[@]}" --maxfail=3 --numprocesses=2 "${OTHER_TESTS[@]}"
           else
             echo "No non-distributed tests found under testing/python."
           fi
