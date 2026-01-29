@@ -84,7 +84,7 @@ jobs:
     strategy:
       matrix:
         runner:
-          - tags: [self-hosted, tlescale]
+          - tags: [self-hosted, tilescale]
             name: self-hosted-nvidia
             # Format: [Nightly-]CUDA-<major>.<minor>[.<patch>]. E.g., "CUDA-12.8" or "Nightly-CUDA-13.0".
             # Use "Nightly-" prefix to use torch nightly builds.
