@@ -250,7 +250,7 @@ jobs:
           uv pip install -v .
           bash tilelang/distributed/install_deepep.sh  # Install DeepEP for testing purpose
           export NCCL_IB_DISABLE=1  # Our CI machine's IB is incomplete, disable it to avoid unnecessary error msgs
-          
+
       # - name: Run clang-tidy
       #   id: clang-tidy
       #   if: runner.os == 'Linux'
